@@ -27,8 +27,17 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
   const [result, setResult] = useState<NumerologyResult | null>(null);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
-  // 計算方式說明 Tooltip 狀態
   const [showInfoTooltip, setShowInfoTooltip] = useState<boolean>(false);
+
+  // 當 Tooltip 展開時，點擊頁面其他地方自動關閉 Tooltip
+  useEffect(() => {
+    if (!showInfoTooltip) return;
+    const handleCloseTooltip = () => {
+      setShowInfoTooltip(false);
+    };
+    window.addEventListener('click', handleCloseTooltip);
+    return () => window.removeEventListener('click', handleCloseTooltip);
+  }, [showInfoTooltip]);
 
   // 當前啟用的結果頁籤 ('main' = 命定水晶, 'missing' = 缺數水晶)
   const [activeResultTab, setActiveResultTab] = useState<'main' | 'missing'>('main');
@@ -146,8 +155,12 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
           
           {/* Info Icon & Tooltip */}
           <div
-            onMouseEnter={() => setShowInfoTooltip(true)}
-            onMouseLeave={() => setShowInfoTooltip(false)}
+            onMouseEnter={() => !isMobileOrTablet && setShowInfoTooltip(true)}
+            onMouseLeave={() => !isMobileOrTablet && setShowInfoTooltip(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowInfoTooltip((prev) => !prev);
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -164,7 +177,14 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             </svg>
 
             {/* Tooltip */}
-            <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, pointerEvents: 'none' }}>
+            <div style={{ 
+              position: isMobileOrTablet ? 'fixed' : 'absolute', 
+              bottom: isMobileOrTablet ? '20px' : '24px', 
+              left: isMobileOrTablet ? '50%' : '50%', 
+              transform: 'translateX(-50%)', 
+              zIndex: 1000, 
+              pointerEvents: showInfoTooltip ? 'auto' : 'none' 
+            }}>
               <AnimatePresence>
                 {showInfoTooltip && (
                   <motion.div
@@ -180,8 +200,9 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
                       fontSize: '11px',
                       lineHeight: '1.5',
                       whiteSpace: 'pre-wrap',
-                      width: '280px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      width: isMobileOrTablet ? 'calc(100vw - 32px)' : '280px',
+                      maxWidth: isMobileOrTablet ? '320px' : 'none',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                       border: '1px solid var(--border-light)',
                       textAlign: 'left',
                     }}
@@ -208,7 +229,10 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             required
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
-            style={styles.dateInput}
+            style={{
+              ...styles.dateInput,
+              fontSize: isMobileOrTablet ? '16px' : '13px',
+            }}
           />
           <button
             type="submit"
@@ -264,7 +288,7 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
                   fontWeight: activeResultTab === 'main' ? '600' : 'normal',
                 }}
               >
-                ✦ 命定水晶 (強化優勢)
+                {isMobileOrTablet ? '✦ 命定水晶' : '✦ 命定水晶 (強化優勢)'}
               </button>
               <button
                 onClick={() => setActiveResultTab('missing')}
@@ -275,7 +299,7 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
                   fontWeight: activeResultTab === 'missing' ? '600' : 'normal',
                 }}
               >
-                ✦ 缺數水晶 (補強弱項)
+                {isMobileOrTablet ? '✦ 缺數水晶' : '✦ 缺數水晶 (補強弱項)'}
               </button>
             </div>
 
@@ -419,6 +443,8 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             onClose={() => setActiveModalCrystal(null)}
             isMobile={isMobileOrTablet}
             onOpenFeedback={onOpenFeedback}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
           />
         )}
       </AnimatePresence>
@@ -434,9 +460,12 @@ interface ModalProps {
   onClose: () => void;
   isMobile: boolean;
   onOpenFeedback: (crystalName: string) => void;
+  favorites: string[];
+  onToggleFavorite: (crystalId: string) => void;
 }
-const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback }) => {
+const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback, favorites, onToggleFavorite }) => {
   const [isReportHovered, setIsReportHovered] = useState(false);
+  const isFavorite = favorites.includes(crystal.id);
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <motion.div
@@ -472,8 +501,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
               borderBottom: isMobile ? '1px solid var(--border-light)' : 'none',
               paddingRight: isMobile ? '0' : '32px',
               paddingBottom: isMobile ? '24px' : '0',
+              position: 'relative',
             }}
           >
+            {/* 桌面版收藏愛心按鈕，位置貼近隔線旁，不需背景與陰影 */}
+            {!isMobile && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(crystal.id);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '0px',
+                  right: '32px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  transition: 'transform 0.2s',
+                  zIndex: 10,
+                }}
+                title={isFavorite ? '取消收藏' : '加入收藏'}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill={isFavorite ? '#e8a7a1' : 'none'}
+                  stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+            )}
+
             <div style={styles.modalBeadCircle}>
               <img
                 src={crystal.image}
@@ -481,7 +549,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
                 style={styles.modalBeadImage}
               />
             </div>
-            <h2 style={styles.modalTitle}>{crystal.name}</h2>
+
+            {/* 水晶名稱區域（手機版將最愛按鈕貼右邊界） */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <h2 style={{ ...styles.modalTitle, margin: 0, padding: '0 40px' }}>{crystal.name}</h2>
+              {isMobile && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(crystal.id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                  }}
+                  title={isFavorite ? '取消收藏' : '加入收藏'}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill={isFavorite ? '#e8a7a1' : 'none'}
+                    stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <p style={styles.modalSub}>{crystal.englishName} | {crystal.chemicalFormula}</p>
             <div style={styles.modalTagRow}>
               <span style={styles.modalTag}>靈數 {crystal.numerology.join('、')}</span>
@@ -883,14 +991,19 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   closeBtn: {
     position: 'absolute',
-    top: '20px',
-    right: '20px',
+    top: '12px',
+    right: '12px',
     background: 'none',
     border: 'none',
-    fontSize: '16px',
+    fontSize: '20px',
     cursor: 'pointer',
     color: 'var(--text-tertiary)',
     transition: 'color 0.2s',
+    padding: '12px',
+    zIndex: 100,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalLayout: {
     display: 'grid',

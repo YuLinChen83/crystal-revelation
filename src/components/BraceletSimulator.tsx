@@ -33,6 +33,7 @@ export const BraceletSimulator: React.FC<{
   preselectedCrystalId?: string | null;
   onClearPreselected?: () => void;
   favorites?: string[];
+  onToggleFavorite?: (crystalId: string) => void;
   onOpenFeedback: (crystalName: string) => void;
   defaultShowFavoritesOnly?: boolean;
   onResetDefaultShowFavorites?: () => void;
@@ -40,6 +41,7 @@ export const BraceletSimulator: React.FC<{
   preselectedCrystalId,
   onClearPreselected,
   favorites = [],
+  onToggleFavorite,
   onOpenFeedback,
   defaultShowFavoritesOnly,
   onResetDefaultShowFavorites,
@@ -52,6 +54,16 @@ export const BraceletSimulator: React.FC<{
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   const [showBetaTooltip, setShowBetaTooltip] = useState<boolean>(false);
+
+  // 當 BETA Tooltip 展開時，點擊頁面其他地方自動關閉 Tooltip
+  useEffect(() => {
+    if (!showBetaTooltip) return;
+    const handleCloseTooltip = () => {
+      setShowBetaTooltip(false);
+    };
+    window.addEventListener('click', handleCloseTooltip);
+    return () => window.removeEventListener('click', handleCloseTooltip);
+  }, [showBetaTooltip]);
 
   useEffect(() => {
     if (defaultShowFavoritesOnly) {
@@ -92,6 +104,7 @@ export const BraceletSimulator: React.FC<{
   }, []);
 
   const isMobile = windowWidth <= 768;
+  const isResponsiveStack = windowWidth <= 1080;
 
   // 統計手鍊上的水晶種類和數量
   const crystalCounts = bracelet.reduce((acc, bead) => {
@@ -246,17 +259,436 @@ export const BraceletSimulator: React.FC<{
 
   // 篩選與分頁計算
   const displayedCrystals = showFavoritesOnly
-    ? crystalsData.filter(c => favorites.includes(c.id))
+    ? crystalsData.filter((c: any) => favorites.includes(c.id))
     : crystalsData;
 
-  // 動態計算每頁個數：按鈕寬 84px + 間距 12px = 96px。最後一個按鈕不計右間距，故公式為 (viewportWidth + 12) / 96
+  // 動態計算每頁個數
   const itemsPerPage = viewportWidth > 0 ? Math.max(1, Math.floor((viewportWidth + 12) / 96)) : 8;
   const totalPages = Math.ceil(displayedCrystals.length / itemsPerPage);
   const validPageIndex = Math.min(currentPageIndex, Math.max(0, totalPages - 1));
-  const paginatedCrystals = displayedCrystals.slice(
-    validPageIndex * itemsPerPage,
-    (validPageIndex + 1) * itemsPerPage
-  );
+
+  // 如果是直式折行畫面，則不分頁，直接水平滑動
+  const paginatedCrystals = isResponsiveStack
+    ? displayedCrystals
+    : displayedCrystals.slice(
+        validPageIndex * itemsPerPage,
+        (validPageIndex + 1) * itemsPerPage
+      );
+
+  const renderTraySection = () => {
+    return (
+      <div style={{
+        ...styles.traySection,
+        padding: isResponsiveStack ? '10px 8px' : '20px 24px',
+        borderTop: isResponsiveStack ? 'none' : '1px solid var(--border-light)',
+        borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
+      }}>
+        <div style={styles.trayHeader}>
+          <h3 style={styles.sectionTitle}>水晶珠盤收納盒</h3>
+          <div style={styles.segmentedControl}>
+            <button
+              onClick={() => setShowFavoritesOnly(false)}
+              style={{
+                ...styles.segmentedBtn,
+                backgroundColor: !showFavoritesOnly ? 'var(--bg-secondary)' : 'transparent',
+                color: !showFavoritesOnly ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                borderColor: !showFavoritesOnly ? 'var(--border-medium)' : 'transparent',
+                fontWeight: !showFavoritesOnly ? '500' : 'normal',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              全部
+            </button>
+            <button
+              onClick={() => setShowFavoritesOnly(true)}
+              style={{
+                ...styles.segmentedBtn,
+                backgroundColor: showFavoritesOnly ? 'var(--bg-secondary)' : 'transparent',
+                color: showFavoritesOnly ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                borderColor: showFavoritesOnly ? 'var(--border-medium)' : 'transparent',
+                fontWeight: showFavoritesOnly ? '500' : 'normal',
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="12"
+                height="12"
+                fill={showFavoritesOnly ? '#e8a7a1' : 'none'}
+                stroke={showFavoritesOnly ? '#d98880' : 'currentColor'}
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              收藏 ({favorites.length})
+            </button>
+          </div>
+        </div>
+        
+        <div style={styles.carouselContainer}>
+          {!isResponsiveStack && (
+            <button
+              onClick={() => setCurrentPageIndex(prev => Math.max(0, prev - 1))}
+              disabled={validPageIndex === 0}
+              style={{
+                ...styles.carouselArrowBtn,
+                opacity: validPageIndex === 0 ? 0.3 : 1,
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
+
+          <div
+            style={{
+              ...styles.carouselViewport,
+              overflowX: isResponsiveStack ? 'auto' : 'hidden',
+              WebkitOverflowScrolling: 'touch',
+            }}
+            ref={viewportRef}
+          >
+            <div style={{
+              ...styles.beadGrid,
+              flexWrap: 'nowrap',
+            }}>
+              {paginatedCrystals.map((c: any) => (
+                <div key={c.id} style={{ position: 'relative', flexShrink: 0 }}>
+                  <button
+                    onClick={() => {
+                      setSelectedCrystal(c.id);
+                      addBead(c.id);
+                    }}
+                    style={{
+                      ...styles.beadSelectionBtn,
+                      borderColor: selectedCrystal === c.id ? 'var(--text-primary)' : 'var(--border-light)',
+                    }}
+                  >
+                    <img src={c.image} alt={c.name} style={styles.trayBeadImg} />
+                    <span style={styles.trayBeadName}>{c.name}</span>
+                  </button>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveModalCrystal(c);
+                      setModalTab('science');
+                    }}
+                    style={styles.trayInfoBtn}
+                    title="查看水晶百科"
+                  >
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              
+              {paginatedCrystals.length === 0 && (
+                <div style={styles.emptyTrayMsg}>
+                  {showFavoritesOnly ? '尚未收藏任何水晶，請前往「百科展覽」點擊愛心進行收藏。' : '無水晶資料'}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!isResponsiveStack && (
+            <button
+              onClick={() => setCurrentPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={validPageIndex >= totalPages - 1}
+              style={{
+                ...styles.carouselArrowBtn,
+                opacity: validPageIndex >= totalPages - 1 ? 0.3 : 1,
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderControlHeader = () => {
+    return (
+      <div
+        style={{
+          ...styles.controlPanel,
+          padding: isMobile ? '24px 16px' : '32px 24px',
+          width: '100%',
+          height: 'auto',
+          borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative' }}>
+          <h2 style={{ ...styles.panelTitle, margin: 0 }}>3D 實體手鍊模擬器</h2>
+          
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: '600',
+              color: 'var(--text-tertiary)',
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-light)',
+              borderRadius: '4px',
+              padding: '1px 5px',
+              letterSpacing: '0.5px',
+              lineHeight: '1',
+              userSelect: 'none',
+            }}
+          >
+            BETA
+          </span>
+
+          <div
+            onMouseEnter={() => !isResponsiveStack && setShowBetaTooltip(true)}
+            onMouseLeave={() => !isResponsiveStack && setShowBetaTooltip(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowBetaTooltip((prev) => !prev);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'help',
+              color: 'var(--text-tertiary)',
+              position: 'relative',
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+
+            <div style={{ 
+              position: isResponsiveStack ? 'fixed' : 'absolute', 
+              bottom: isResponsiveStack ? '20px' : '22px', 
+              left: isResponsiveStack ? '50%' : '50%', 
+              transform: 'translateX(-50%)', 
+              zIndex: 1000, 
+              pointerEvents: showBetaTooltip ? 'auto' : 'none' 
+            }}>
+              <AnimatePresence>
+                {showBetaTooltip && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      backgroundColor: 'var(--text-primary)',
+                      color: 'var(--bg-primary)',
+                      padding: '10px 14px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      lineHeight: '1.4',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      border: '1px solid var(--border-light)',
+                    }}
+                  >
+                    功能實驗中，歡迎給予建議回饋
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+        <p style={styles.panelSub}>選取下方收納盒中的水晶珠放入手鍊。我們將以 3D 物理引擎動態排列並展現水晶玻璃折射感。</p>
+
+        {isMobile ? (
+          <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px', marginBottom: '16px' }}>
+            <button
+              onClick={removeLastBead}
+              disabled={bracelet.length === 0}
+              style={{
+                ...styles.btnSecondary,
+                flex: 1,
+                fontSize: '12px',
+                padding: '10px 0',
+                opacity: bracelet.length === 0 ? 0.4 : 1,
+              }}
+            >
+              返回
+            </button>
+            <button
+              onClick={clearBracelet}
+              disabled={bracelet.length === 0}
+              style={{
+                ...styles.btnSecondary,
+                flex: 1,
+                fontSize: '12px',
+                padding: '10px 0',
+                opacity: bracelet.length === 0 ? 0.4 : 1,
+              }}
+            >
+              重置
+            </button>
+            <button
+              onClick={handleStringUp}
+              disabled={bracelet.length < 3}
+              style={{
+                ...styles.btnPrimary,
+                flex: 1.2,
+                fontSize: '12px',
+                padding: '10px 0',
+                opacity: bracelet.length < 3 ? 0.5 : 1,
+              }}
+            >
+              {isStringed ? '✨已串連' : '完成'}
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={styles.actionRow}>
+              <button
+                onClick={removeLastBead}
+                disabled={bracelet.length === 0}
+                style={{
+                  ...styles.btnSecondary,
+                  opacity: bracelet.length === 0 ? 0.4 : 1,
+                }}
+              >
+                退回一顆
+              </button>
+              <button
+                onClick={clearBracelet}
+                disabled={bracelet.length === 0}
+                style={{
+                  ...styles.btnSecondary,
+                  opacity: bracelet.length === 0 ? 0.4 : 1,
+                }}
+              >
+                清空重置
+              </button>
+            </div>
+
+            <button
+              onClick={handleStringUp}
+              disabled={bracelet.length < 3}
+              style={{
+                ...styles.btnPrimary,
+                opacity: bracelet.length < 3 ? 0.5 : 1,
+              }}
+            >
+              {isStringed ? '✨ 手鍊已串連' : '一鍵穿線收尾'}
+            </button>
+          </>
+        )}
+
+        {isStringed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            style={styles.colorPickerContainer}
+          >
+            <span style={styles.colorPickerLabel}>選擇穿線顏色：</span>
+            <div style={styles.colorOptionsRow}>
+              {[
+                { color: '#ffffff', name: '純白' },
+                { color: '#ff7675', name: '桃紅' },
+                { color: '#f1c40f', name: '金黃' },
+                { color: '#2f3542', name: '深灰' },
+                { color: '#1e90ff', name: '靛藍' },
+              ].map(opt => (
+                <button
+                  key={opt.color}
+                  onClick={() => setStringColor(opt.color)}
+                  title={opt.name}
+                  style={{
+                    ...styles.colorCircleBtn,
+                    backgroundColor: opt.color,
+                    border: stringColor === opt.color ? '2px solid var(--text-primary)' : '1px solid var(--border-medium)',
+                  }}
+                />
+              ))}
+              
+              <div style={styles.customColorWrapper} title="自訂顏色">
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>🎨</span>
+                <input
+                  type="color"
+                  value={stringColor}
+                  onChange={(e) => setStringColor(e.target.value)}
+                  style={styles.customColorInput}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {isStringed && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={handleCapture}
+            style={styles.btnExport}
+          >
+            導出手鍊 3D 渲染圖
+          </motion.button>
+        )}
+      </div>
+    );
+  };
+
+  const renderAnalysisSection = () => {
+    return (
+      <div style={{
+        ...styles.analysisSection,
+        padding: isMobile ? '24px 16px' : '0 24px 24px 24px',
+        borderTop: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
+        backgroundColor: isResponsiveStack ? '#ffffff' : 'transparent',
+      }}>
+        <h3 style={styles.sectionTitle}>✦ 手鍊能量分析</h3>
+        {bracelet.length > 0 ? (
+          <div style={styles.analysisCard}>
+            <div style={styles.analysisGroup}>
+              <span style={styles.analysisLabel}>水晶組成</span>
+              <div style={styles.combinationList}>
+                {activeCrystals.map(item => (
+                  <span key={item.crystal.id} style={styles.combinationItem}>
+                    {item.crystal.name} × {item.count}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div style={{ ...styles.analysisGroup, marginTop: '12px' }}>
+              <span style={styles.analysisLabel}>累積能量特質</span>
+              <div style={styles.traitBadgeRow}>
+                {sortedTraits.map(trait => (
+                  <span key={trait} style={styles.traitBadge}>
+                    {trait} +{traitCounts[trait]}
+                  </span>
+                ))}
+              </div>
+              <div style={styles.traitDetailList}>
+                {sortedTraits.map(trait => (
+                  <div key={trait} style={styles.traitDetailItem}>
+                    <strong style={styles.traitDetailName}>{trait}：</strong>
+                    <span style={styles.traitDetailText}>{TRAIT_DESCRIPTIONS[trait] || ''}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={styles.emptyAnalysisCard}>
+            請由下方水晶珠盤挑選水晶珠放入手鍊，此處將分析您的專屬手鍊能量。
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -266,30 +698,40 @@ export const BraceletSimulator: React.FC<{
       }}
     >
       <div style={styles.workbench}>
-        {/* 上半部：3D 模擬與右側控制台 */}
+        {/* 1. 操作頭部按鈕區（直式版面下放置在最上方） */}
+        {isResponsiveStack && renderControlHeader()}
+
+        {/* 2. 水晶珠盤收納盒（直式版面下放置在第二順位） */}
+        {isResponsiveStack && renderTraySection()}
+
+        {/* 3. 3D 模擬與右側控制台（桌面版有右側控制台，手機版僅有畫布） */}
         <div
           style={{
             ...styles.topSection,
-            flexDirection: isMobile ? 'column' : 'row',
+            flexDirection: isResponsiveStack ? 'column' : 'row',
           }}
         >
-          {/* 左側：3D Canvas 預覽 */}
+          {/* 左側/中間：3D Canvas 預覽，minHeight 設為至少 30vh，且移除滑鼠鍵盤操作提示 */}
           <div
             style={{
               ...styles.canvasContainer,
-              height: isMobile ? '380px' : '520px',
-              borderRight: isMobile ? 'none' : '1px solid var(--border-light)',
-              borderBottom: isMobile ? '1px solid var(--border-light)' : 'none',
+              height: isMobile ? '480px' : '520px',
+              minHeight: isMobile ? '50vh' : 'auto',
+              borderRight: isResponsiveStack ? 'none' : '1px solid var(--border-light)',
+              borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
             }}
           >
-            <div style={styles.instructions}>
-              滑鼠左鍵拖曳旋轉 · 右鍵平移 · 滾輪縮放
-            </div>
-            
             {/* 珠子計數器膠囊固定在右上方 */}
             <div style={styles.beadCounterBadge}>
               珠子數：{bracelet.length} / 24
             </div>
+
+            {/* 3D 操作提示，僅在手機版以外顯示 */}
+            {!isMobile && (
+              <div style={styles.instructions}>
+                滑鼠左鍵拖曳旋轉 · 右鍵平移 · 輪滾縮放
+              </div>
+            )}
             
             <Canvas
               gl={{ preserveDrawingBuffer: true }}
@@ -324,336 +766,27 @@ export const BraceletSimulator: React.FC<{
             </AnimatePresence>
           </div>
 
-          {/* 右側：控制台 */}
-          <div
-            style={{
-              ...styles.controlPanel,
-              padding: isMobile ? '24px 16px' : '32px 24px',
-              width: isMobile ? '100%' : '340px',
-              height: isMobile ? 'auto' : '520px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative' }}>
-              <h2 style={{ ...styles.panelTitle, margin: 0 }}>3D 實體手鍊模擬器</h2>
-              
-              {/* BETA 標章 */}
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  color: 'var(--text-tertiary)',
-                  backgroundColor: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: '4px',
-                  padding: '1px 5px',
-                  letterSpacing: '0.5px',
-                  lineHeight: '1',
-                  userSelect: 'none',
-                }}
-              >
-                BETA
-              </span>
-
-              {/* Info Icon 與 Tooltip 容器 */}
-              <div
-                onMouseEnter={() => setShowBetaTooltip(true)}
-                onMouseLeave={() => setShowBetaTooltip(false)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'help',
-                  color: 'var(--text-tertiary)',
-                  position: 'relative',
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-
-                {/* Tooltip 彈出框 */}
-                <div style={{ position: 'absolute', bottom: '22px', left: '50%', transform: 'translateX(-50%)', zIndex: 100, pointerEvents: 'none' }}>
-                  <AnimatePresence>
-                    {showBetaTooltip && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        style={{
-                          backgroundColor: 'var(--text-primary)',
-                          color: 'var(--bg-primary)',
-                          padding: '6px 10px',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          lineHeight: '1.4',
-                          whiteSpace: 'nowrap',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          border: '1px solid var(--border-light)',
-                        }}
-                      >
-                        功能實驗中，歡迎給予建議回饋
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </div>
-            <p style={styles.panelSub}>選取下方收納盒中的水晶珠放入手鍊。我們將以 3D 物理引擎動態排列並展現水晶玻璃折射感。</p>
-
-            {/* 操作按鈕群 */}
-            <div style={styles.actionRow}>
-              <button
-                onClick={removeLastBead}
-                disabled={bracelet.length === 0}
-                style={{
-                  ...styles.btnSecondary,
-                  opacity: bracelet.length === 0 ? 0.4 : 1,
-                }}
-              >
-                退回一顆
-              </button>
-              <button
-                onClick={clearBracelet}
-                disabled={bracelet.length === 0}
-                style={{
-                  ...styles.btnSecondary,
-                  opacity: bracelet.length === 0 ? 0.4 : 1,
-                }}
-              >
-                清空重置
-              </button>
-            </div>
-
-            <button
-              onClick={handleStringUp}
-              disabled={bracelet.length < 3}
+          {/* 右側：控制台 (桌面版在此渲染，寬度微調為 320px 以防切掉) */}
+          {!isResponsiveStack && (
+            <div
               style={{
-                ...styles.btnPrimary,
-                opacity: bracelet.length < 3 ? 0.5 : 1,
+                ...styles.controlPanel,
+                padding: '0px',
+                width: '320px',
+                height: '520px',
               }}
             >
-              {isStringed ? '✨ 手鍊已串連' : '一鍵穿線收尾'}
-            </button>
-
-            {isStringed && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                style={styles.colorPickerContainer}
-              >
-                <span style={styles.colorPickerLabel}>選擇穿線顏色：</span>
-                <div style={styles.colorOptionsRow}>
-                  {[
-                    { color: '#ffffff', name: '純白' },
-                    { color: '#ff7675', name: '桃紅' },
-                    { color: '#f1c40f', name: '金黃' },
-                    { color: '#2f3542', name: '深灰' },
-                    { color: '#1e90ff', name: '靛藍' },
-                  ].map(opt => (
-                    <button
-                      key={opt.color}
-                      onClick={() => setStringColor(opt.color)}
-                      title={opt.name}
-                      style={{
-                        ...styles.colorCircleBtn,
-                        backgroundColor: opt.color,
-                        border: stringColor === opt.color ? '2px solid var(--text-primary)' : '1px solid var(--border-medium)',
-                      }}
-                    />
-                  ))}
-                  
-                  <div style={styles.customColorWrapper} title="自訂顏色">
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>🎨</span>
-                    <input
-                      type="color"
-                      value={stringColor}
-                      onChange={(e) => setStringColor(e.target.value)}
-                      style={styles.customColorInput}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {isStringed && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={handleCapture}
-                style={styles.btnExport}
-              >
-                導出手鍊 3D 渲染圖
-              </motion.button>
-            )}
-
-            {/* 手鍊能量特質分析 */}
-            <div style={styles.analysisSection}>
-              <h3 style={styles.sectionTitle}>✦ 手鍊能量分析</h3>
-              {bracelet.length > 0 ? (
-                <div style={styles.analysisCard}>
-                  <div style={styles.analysisGroup}>
-                    <span style={styles.analysisLabel}>水晶組成</span>
-                    <div style={styles.combinationList}>
-                      {activeCrystals.map(item => (
-                        <span key={item.crystal.id} style={styles.combinationItem}>
-                          {item.crystal.name} × {item.count}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ ...styles.analysisGroup, marginTop: '12px' }}>
-                    <span style={styles.analysisLabel}>累積能量特質</span>
-                    <div style={styles.traitBadgeRow}>
-                      {sortedTraits.map(trait => (
-                        <span key={trait} style={styles.traitBadge}>
-                          {trait} +{traitCounts[trait]}
-                        </span>
-                      ))}
-                    </div>
-                    {/* 特質描述列表 */}
-                    <div style={styles.traitDetailList}>
-                      {sortedTraits.map(trait => (
-                        <div key={trait} style={styles.traitDetailItem}>
-                          <strong style={styles.traitDetailName}>{trait}：</strong>
-                          <span style={styles.traitDetailText}>{TRAIT_DESCRIPTIONS[trait] || ''}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div style={styles.emptyAnalysisCard}>
-                  請由下方水晶珠盤挑選水晶珠放入手鍊，此處將分析您的專屬手鍊能量。
-                </div>
-              )}
+              {renderControlHeader()}
+              {renderAnalysisSection()}
             </div>
-          </div>
+          )}
         </div>
 
-        {/* 下半部：水晶珠盤收納盒 */}
-        <div style={styles.traySection}>
-          <div style={styles.trayHeader}>
-            <h3 style={styles.sectionTitle}>水晶珠盤收納盒</h3>
-            <div style={styles.segmentedControl}>
-              <button
-                onClick={() => setShowFavoritesOnly(false)}
-                style={{
-                  ...styles.segmentedBtn,
-                  backgroundColor: !showFavoritesOnly ? 'var(--bg-secondary)' : 'transparent',
-                  color: !showFavoritesOnly ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                  borderColor: !showFavoritesOnly ? 'var(--border-medium)' : 'transparent',
-                  fontWeight: !showFavoritesOnly ? '500' : 'normal',
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                顯示所有水晶
-              </button>
-              <button
-                onClick={() => setShowFavoritesOnly(true)}
-                style={{
-                  ...styles.segmentedBtn,
-                  backgroundColor: showFavoritesOnly ? 'var(--bg-secondary)' : 'transparent',
-                  color: showFavoritesOnly ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                  borderColor: showFavoritesOnly ? 'var(--border-medium)' : 'transparent',
-                  fontWeight: showFavoritesOnly ? '500' : 'normal',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="12"
-                  height="12"
-                  fill={showFavoritesOnly ? '#e8a7a1' : 'none'}
-                  stroke={showFavoritesOnly ? '#d98880' : 'currentColor'}
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-                只看收藏 ({favorites.length})
-              </button>
-            </div>
-          </div>
-          
-          <div style={styles.carouselContainer}>
-            <button
-              onClick={() => setCurrentPageIndex(prev => Math.max(0, prev - 1))}
-              disabled={validPageIndex === 0}
-              style={{
-                ...styles.carouselArrowBtn,
-                opacity: validPageIndex === 0 ? 0.3 : 1,
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
+        {/* 4. 手機版能量分析放在 3D Canvas 的最下方 */}
+        {isResponsiveStack && renderAnalysisSection()}
 
-            <div style={styles.carouselViewport} ref={viewportRef}>
-              <div style={styles.beadGrid}>
-                {paginatedCrystals.map((c) => (
-                  <div key={c.id} style={{ position: 'relative', flexShrink: 0 }}>
-                    <button
-                      onClick={() => {
-                        setSelectedCrystal(c.id);
-                        addBead(c.id);
-                      }}
-                      style={{
-                        ...styles.beadSelectionBtn,
-                        borderColor: selectedCrystal === c.id ? 'var(--text-primary)' : 'var(--border-light)',
-                      }}
-                    >
-                      <img src={c.image} alt={c.name} style={styles.trayBeadImg} />
-                      <span style={styles.trayBeadName}>{c.name}</span>
-                    </button>
-                    
-                    {/* 右上角細線條 InfoIcon */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveModalCrystal(c);
-                        setModalTab('science');
-                      }}
-                      style={styles.trayInfoBtn}
-                      title="查看水晶百科"
-                    >
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-                
-                {paginatedCrystals.length === 0 && (
-                  <div style={styles.emptyTrayMsg}>
-                    {showFavoritesOnly ? '尚未收藏任何水晶，請前往「百科展覽」點擊愛心進行收藏。' : '無水晶資料'}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setCurrentPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
-              disabled={validPageIndex >= totalPages - 1}
-              style={{
-                ...styles.carouselArrowBtn,
-                opacity: validPageIndex >= totalPages - 1 ? 0.3 : 1,
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* 5. 桌面版水晶珠盤收納盒放在最下方 */}
+        {!isResponsiveStack && renderTraySection()}
       </div>
 
       {/* 詳細 Modal 彈窗 */}
@@ -666,6 +799,8 @@ export const BraceletSimulator: React.FC<{
             onClose={() => setActiveModalCrystal(null)}
             isMobile={isMobile}
             onOpenFeedback={onOpenFeedback}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite || (() => {})}
           />
         )}
       </AnimatePresence>
@@ -681,9 +816,12 @@ interface ModalProps {
   onClose: () => void;
   isMobile: boolean;
   onOpenFeedback: (crystalName: string) => void;
+  favorites: string[];
+  onToggleFavorite: (crystalId: string) => void;
 }
-const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback }) => {
+const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback, favorites, onToggleFavorite }) => {
   const [isReportHovered, setIsReportHovered] = useState(false);
+  const isFavorite = favorites.includes(crystal.id);
   return (
     <div style={modalStyles.modalOverlay} onClick={onClose}>
       <motion.div
@@ -719,8 +857,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
               borderBottom: isMobile ? '1px solid var(--border-light)' : 'none',
               paddingRight: isMobile ? '0' : '32px',
               paddingBottom: isMobile ? '24px' : '0',
+              position: 'relative',
             }}
           >
+            {/* 桌面版收藏愛心按鈕，位置貼近隔線旁，不需背景與陰影 */}
+            {!isMobile && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(crystal.id);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '0px',
+                  right: '32px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  transition: 'transform 0.2s',
+                  zIndex: 10,
+                }}
+                title={isFavorite ? '取消收藏' : '加入收藏'}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill={isFavorite ? '#e8a7a1' : 'none'}
+                  stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+            )}
+
             <div style={modalStyles.modalBeadCircle}>
               <img
                 src={crystal.image}
@@ -728,7 +905,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
                 style={modalStyles.modalBeadImage}
               />
             </div>
-            <h2 style={modalStyles.modalTitle}>{crystal.name}</h2>
+
+            {/* 水晶名稱區域（手機版將最愛按鈕貼右邊界） */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <h2 style={{ ...modalStyles.modalTitle, margin: 0, padding: '0 40px' }}>{crystal.name}</h2>
+              {isMobile && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(crystal.id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                  }}
+                  title={isFavorite ? '取消收藏' : '加入收藏'}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill={isFavorite ? '#e8a7a1' : 'none'}
+                    stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <p style={modalStyles.modalSub}>{crystal.englishName} | {crystal.chemicalFormula}</p>
             <div style={modalStyles.modalTagRow}>
               <span style={modalStyles.modalTag}>靈數 {crystal.numerology.join('、')}</span>
@@ -929,6 +1146,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   canvasContainer: {
     position: 'relative',
     flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
   },
   instructions: {
     position: 'absolute',
@@ -1297,14 +1516,19 @@ const modalStyles: { [key: string]: React.CSSProperties } = {
   },
   closeBtn: {
     position: 'absolute',
-    top: '20px',
-    right: '20px',
+    top: '12px',
+    right: '12px',
     background: 'none',
     border: 'none',
-    fontSize: '16px',
+    fontSize: '20px',
     cursor: 'pointer',
     color: 'var(--text-tertiary)',
     transition: 'color 0.2s',
+    padding: '12px',
+    zIndex: 100,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalLayout: {
     display: 'grid',

@@ -32,7 +32,12 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
   const [isSystemOpen, setIsSystemOpen] = useState<boolean>(false);
 
   const [isSticky, setIsSticky] = useState<boolean>(false);
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return true;
+  });
 
   const [gridCols, setGridCols] = useState<number>(6);
 
@@ -82,19 +87,27 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 監聽滾動以處理 Sticky / Collapsed 狀態 (進入 fixed 狀態與滾動時皆自動收合，滑回頂部時自動展開)
+  // 當螢幕寬度改變，從手機版切換回桌面版時，自動展開篩選面板
+  useEffect(() => {
+    if (windowWidth > 768) {
+      setIsCollapsed(false);
+    }
+  }, [windowWidth]);
+
+  // 監聽滾動以處理 Sticky 狀態 (僅在行動端且由非置頂變置頂的瞬間自動收合篩選，其餘時間不強制覆蓋手動展開)
   useEffect(() => {
     const handleScroll = () => {
+      const isMobile = window.innerWidth <= 768;
       const nextSticky = window.scrollY > 220;
-      setIsSticky(nextSticky);
-      if (nextSticky) {
-        setIsCollapsed(true); // 只要是 fixed 狀態且滾動，即自動保持收合，維持版面極簡
-      } else {
-        setIsCollapsed(false); // 滑回頂部時自動展開
-      }
+      setIsSticky((prevSticky) => {
+        if (isMobile && !prevSticky && nextSticky) {
+          setIsCollapsed(true);
+        }
+        return nextSticky;
+      });
     };
     
-    // 初始化執行一次，確保 mount 時 (或切換分頁回來時) 能立即套用正確的收合狀態
+    // 初始化執行一次，確保 mount 時能立即套用正確的 Sticky 狀態
     handleScroll();
     
     window.addEventListener('scroll', handleScroll);
@@ -463,7 +476,10 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                       setSelectedMineral('all');
                     }
                   }}
-                  style={styles.searchInput}
+                  style={{
+                    ...styles.searchInput,
+                    fontSize: isMobileOrTablet ? '16px' : '12px',
+                  }}
                 />
                 {selectedMineral !== 'all' || mineralInput ? (
                   <button
@@ -533,7 +549,10 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                       setSelectedSystem('all');
                     }
                   }}
-                  style={styles.searchInput}
+                  style={{
+                    ...styles.searchInput,
+                    fontSize: isMobileOrTablet ? '16px' : '12px',
+                  }}
                 />
                 {selectedSystem !== 'all' || systemInput ? (
                   <button
@@ -599,6 +618,7 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                     paddingRight: '12px',
                     cursor: 'pointer',
                     appearance: 'none',
+                    fontSize: isMobileOrTablet ? '16px' : '12px',
                   }}
                 >
                   <option value="all">搜尋硬度家族 (全部)...</option>
@@ -620,8 +640,104 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
   return (
     <div style={styles.container}>
       {/* 1. 頂部靜態篩選區域 (隨滾動自然移出螢幕，保證不閃爍) */}
-      <div style={styles.staticFilterBar}>
-        {renderFilterFields()}
+      <div style={{
+        ...styles.staticFilterBar,
+        padding: isMobileOrTablet ? '10px 0px 12px 0px' : '24px 0',
+        marginBottom: isMobileOrTablet ? '16px' : '32px',
+      }}>
+        {isCollapsed ? (
+          /* 收合狀態：極簡摘要橫條 */
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%',
+              height: '28px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '12px',
+                color: 'var(--text-secondary)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '85%',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--text-tertiary)' }}>
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              <span style={{ fontWeight: '500', flexShrink: 0 }}>篩選條件：</span>
+              <div style={{ display: 'flex', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', alignItems: 'center' }}>
+                {getActiveFilterTags().length === 0 ? (
+                  <span style={styles.activeTag}>全部水晶</span>
+                ) : (
+                  getActiveFilterTags().map((tag, idx) => (
+                    <span key={idx} style={styles.activeTag}>{tag}</span>
+                  ))
+                )}
+                <span style={{ color: 'var(--text-tertiary)', marginLeft: '4px', fontSize: '11px', flexShrink: 0 }}>({filteredCrystals.length} 顆結果)</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsCollapsed(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '11px',
+                color: 'var(--text-primary)',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              展開篩選
+              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          /* 展開狀態：完整篩選面板 */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            {renderFilterFields()}
+            {/* 控制列（收合與結果統計） */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', width: '100%', borderTop: '1px solid var(--border-light)', paddingTop: '10px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                  共篩選出 {filteredCrystals.length} 顆水晶
+                </span>
+                <button
+                  onClick={() => setIsCollapsed(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    color: 'var(--text-primary)',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  收合篩選
+                  <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. 懸浮 Sticky 篩選區 (採用 AnimatePresence 與 Fixed 佈局，置中滿版且完全防重排閃爍) */}
@@ -634,7 +750,7 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             style={{
               position: 'fixed',
-              top: isMobileOrTablet ? '112px' : '76px',
+              top: isMobileOrTablet ? '104px' : '76px',
               left: 0,
               right: 0,
               width: '100vw',
@@ -789,6 +905,8 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
             onClose={() => setActiveModalCrystal(null)}
             isMobile={isMobileOrTablet}
             onOpenFeedback={onOpenFeedback}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
           />
         )}
       </AnimatePresence>
@@ -901,9 +1019,12 @@ interface ModalProps {
   onClose: () => void;
   isMobile: boolean;
   onOpenFeedback: (crystalName: string) => void;
+  favorites: string[];
+  onToggleFavorite: (crystalId: string) => void;
 }
-const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback }) => {
+const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback, favorites, onToggleFavorite }) => {
   const [isReportHovered, setIsReportHovered] = useState(false);
+  const isFavorite = favorites.includes(crystal.id);
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <motion.div
@@ -939,8 +1060,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
               borderBottom: isMobile ? '1px solid var(--border-light)' : 'none',
               paddingRight: isMobile ? '0' : '32px',
               paddingBottom: isMobile ? '24px' : '0',
+              position: 'relative',
             }}
           >
+            {/* 桌面版收藏愛心按鈕，位置貼近隔線旁，不需背景與陰影 */}
+            {!isMobile && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(crystal.id);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '0px',
+                  right: '32px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  transition: 'transform 0.2s',
+                  zIndex: 10,
+                }}
+                title={isFavorite ? '取消收藏' : '加入收藏'}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill={isFavorite ? '#e8a7a1' : 'none'}
+                  stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+            )}
+
             <div style={styles.modalBeadCircle}>
               <img
                 src={crystal.image}
@@ -948,7 +1108,47 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
                 style={styles.modalBeadImage}
               />
             </div>
-            <h2 style={styles.modalTitle}>{crystal.name}</h2>
+
+            {/* 水晶名稱區域（手機版將最愛按鈕貼右邊界） */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <h2 style={{ ...styles.modalTitle, margin: 0, padding: '0 40px' }}>{crystal.name}</h2>
+              {isMobile && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(crystal.id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                  }}
+                  title={isFavorite ? '取消收藏' : '加入收藏'}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill={isFavorite ? '#e8a7a1' : 'none'}
+                    stroke={isFavorite ? '#d98880' : 'var(--text-tertiary)'}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <p style={styles.modalSub}>{crystal.englishName} | {crystal.chemicalFormula}</p>
             <div style={styles.modalTagRow}>
               <span style={styles.modalTag}>靈數 {crystal.numerology.join('、')}</span>
@@ -1294,14 +1494,19 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   closeBtn: {
     position: 'absolute',
-    top: '20px',
-    right: '20px',
+    top: '12px',
+    right: '12px',
     background: 'none',
     border: 'none',
-    fontSize: '16px',
+    fontSize: '20px',
     cursor: 'pointer',
     color: 'var(--text-tertiary)',
     transition: 'color 0.2s',
+    padding: '12px',
+    zIndex: 100,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalLayout: {
     display: 'grid',

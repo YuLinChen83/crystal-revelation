@@ -126,7 +126,7 @@ function App() {
                 borderBottomColor: currentPage === 'diy' ? 'var(--text-primary)' : 'transparent',
               }}
             >
-              3D 手鍊製作
+              手鍊工坊
             </button>
             <button
               onClick={() => handleOpenFeedback('全站建議 / 其他')}
@@ -139,9 +139,11 @@ function App() {
                 gap: '4px',
               }}
             >
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
+              {!isMobile && (
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              )}
               問題回報
             </button>
             <button
@@ -161,13 +163,15 @@ function App() {
                 gap: '4px',
               }}
             >
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                <line x1="6" y1="2" x2="6" y2="5" />
-                <line x1="10" y1="2" x2="10" y2="5" />
-                <line x1="14" y1="2" x2="14" y2="5" />
-              </svg>
+              {!isMobile && (
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                  <line x1="6" y1="2" x2="6" y2="5" />
+                  <line x1="10" y1="2" x2="10" y2="5" />
+                  <line x1="14" y1="2" x2="14" y2="5" />
+                </svg>
+              )}
               贊助咖啡
             </button>
           </nav>
@@ -178,7 +182,7 @@ function App() {
       <main
         style={{
           ...styles.mainContent,
-          paddingTop: isMobile ? '12px' : '20px',
+          paddingTop: isMobile ? '0px' : '20px',
         }}
       >
         <div className="container">
@@ -205,6 +209,7 @@ function App() {
               preselectedCrystalId={selectedCrystalForDIY}
               onClearPreselected={() => setSelectedCrystalForDIY(null)}
               favorites={favorites}
+              onToggleFavorite={toggleFavorite}
               onOpenFeedback={handleOpenFeedback}
               defaultShowFavoritesOnly={defaultShowFavoritesInDIY}
               onResetDefaultShowFavorites={() => setDefaultShowFavoritesInDIY(false)}
