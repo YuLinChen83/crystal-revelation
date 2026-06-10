@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- 切面 1：左上 (極淡霧霾藍) -->
+  <path d="M16 10 L6 20 L16 20 Z" fill="rgba(197, 213, 228, 0.35)" />
+  <!-- 切面 2：右上 (極淡灰藕粉) -->
+  <path d="M16 10 L16 20 L26 20 Z" fill="rgba(224, 206, 205, 0.35)" />
+  <!-- 切面 3：左下 (極淡抹茶灰綠) -->
+  <path d="M6 20 L16 30 L16 20 Z" fill="rgba(209, 219, 207, 0.3)" />
+  <!-- 切面 4：右下 (極淡麥芽燕麥黃) -->
+  <path d="M16 20 L16 30 L26 20 Z" fill="rgba(235, 227, 213, 0.3)" />
+  
+  <!-- 水晶輪廓與折射骨架線條 -->
+  <path d="M16 10 L6 20 L16 30 L26 20 Z" stroke="#57606f" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" />
+  <path d="M16 10 L16 30" stroke="#57606f" stroke-width="1.2" stroke-linecap="round" />
+  <path d="M6 20 L26 20" stroke="#57606f" stroke-width="1.2" stroke-linecap="round" />
+  
+  <!-- 頂部空靈星芒 -->
+  <line x1="16" y1="1" x2="16" y2="7" stroke="#57606f" stroke-width="1.2" stroke-linecap="round" />
+  <line x1="13" y1="4" x2="19" y2="4" stroke="#57606f" stroke-width="1.2" stroke-linecap="round" />
+</svg>

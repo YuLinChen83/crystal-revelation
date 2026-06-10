@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <!-- 背景：純白色 -->
+  <rect width="600" height="600" fill="#ffffff" />
+  
+  <defs>
+    <!-- 軟陰影漸層 -->
+    <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.16" />
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    
+    <!-- 基礎 3D 遮罩，把內含物限制在圓圈內 -->
+    <clipPath id="beadClip">
+      <circle cx="300" cy="270" r="190" />
+    </clipPath>
+    
+    <!-- 高光與立體感的 3D 覆蓋漸層 -->
+    <radialGradient id="sphere3DGrad" cx="28%" cy="23%" r="72%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="82%" stop-color="#000000" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.38" />
+    </radialGradient>
+
+    <!-- 高光濾鏡 -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  
+    <radialGradient id="crystalBaseGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#fff0f5" />
+      <stop offset="40%" stop-color="#ffb6c1" />
+      <stop offset="100%" stop-color="#d38b9e" />
+    </radialGradient>
+      </defs>
+
+  <!-- 軟陰影 -->
+  <ellipse cx="300" cy="485" rx="140" ry="18" fill="url(#shadowGrad)" />
+
+  <!-- 圓珠主體 -->
+  <g clip-path="url(#beadClip)">
+    <!-- 1. 基礎色 -->
+    <circle cx="300" cy="270" r="190" fill="url(#crystalBaseGrad)" />
+    
+    <!-- 2. 特有的包體/紋理 -->
+    <path d="M 229.74975836696103 258.492080208016 C 181.44230064553994 247.98665340924344, 240.98380367395293 307.1516791544394, 218.68954260698956 289.8946045399765" fill="none" stroke="#ffffff" stroke-width="8.386214840400498" opacity="0.3341468717308317" filter="url(#glow)" stroke-linecap="round"/>
+<path d="M 214.7523130846821 339.23083774654515 C 230.45521475684012 339.1673897625151, 223.81999939515254 305.3882331210116, 217.49155878495685 313.33123801261536" fill="none" stroke="#ffffff" stroke-width="4.253297190469311" opacity="0.16086672392182208" filter="url(#glow)" stroke-linecap="round"/>
+<path d="M 395.46480819262797 237.8256489110936 C 357.36539746321796 196.35316177256755, 387.8365200445728 301.6809266243581, 339.0823018669721 280.8831855891367" fill="none" stroke="#ffffff" stroke-width="6.522760019822272" opacity="0.18508265608525107" filter="url(#glow)" stroke-linecap="round"/>
+<path d="M 207.68351189097984 321.85424356714066 C 236.15530973364685 367.6691462255985, 138.07317615078318 305.3120858231705, 153.76701368694512 268.1523842552633" fill="none" stroke="#ffffff" stroke-width="10.271789819234982" opacity="0.27713966118099054" filter="url(#glow)" stroke-linecap="round"/>
+
+    <!-- 3. 反光與3D陰影層 -->
+    <circle cx="300" cy="270" r="190" fill="url(#sphere3DGrad)" style="mix-blend-mode: multiply;" />
+  </g>
+  
+  <!-- 4. 高光 (Highlight) -->
+  <ellipse cx="230" cy="180" rx="65" ry="38" transform="rotate(-30 230 180)" fill="#ffffff" opacity="0.65" filter="url(#glow)" />
+  <circle cx="200" cy="150" r="15" fill="#ffffff" opacity="0.4" filter="url(#glow)" />
+</svg>

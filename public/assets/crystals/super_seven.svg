@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <!-- 背景：純白色 -->
+  <rect width="600" height="600" fill="#ffffff" />
+  
+  <defs>
+    <!-- 軟陰影漸層 -->
+    <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.16" />
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    
+    <!-- 基礎 3D 遮罩，把內含物限制在圓圈內 -->
+    <clipPath id="beadClip">
+      <circle cx="300" cy="270" r="190" />
+    </clipPath>
+    
+    <!-- 高光與立體感的 3D 覆蓋漸層 -->
+    <radialGradient id="sphere3DGrad" cx="28%" cy="23%" r="72%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="82%" stop-color="#000000" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.38" />
+    </radialGradient>
+
+    <!-- 高光濾鏡 -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  
+    <radialGradient id="crystalBaseGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#e8dbfc" />
+      <stop offset="40%" stop-color="#8854d0" />
+      <stop offset="100%" stop-color="#3d304f" />
+    </radialGradient>
+      </defs>
+
+  <!-- 軟陰影 -->
+  <ellipse cx="300" cy="485" rx="140" ry="18" fill="url(#shadowGrad)" />
+
+  <!-- 圓珠主體 -->
+  <g clip-path="url(#beadClip)">
+    <!-- 1. 基礎色 -->
+    <circle cx="300" cy="270" r="190" fill="url(#crystalBaseGrad)" />
+    
+    <!-- 2. 特有的包體/紋理 -->
+    <ellipse cx="257.14394374983385" cy="320.8698235185875" rx="45" ry="30" transform="rotate(117.20829658213916 257.14394374983385 320.8698235185875)" fill="#4a3c31" opacity="0.25" filter="url(#glow)"/>
+<ellipse cx="319.0547526033333" cy="225.76512250758242" rx="45" ry="30" transform="rotate(148.88818333663949 319.0547526033333 225.76512250758242)" fill="#4a3c31" opacity="0.25" filter="url(#glow)"/>
+<circle cx="230.09243059088476" cy="174.7978928766679" r="3.037599155497446" fill="#c23616" opacity="0.65"/>
+<circle cx="339.0693025317887" cy="367.4131075894911" r="2.2580824456190385" fill="#c23616" opacity="0.65"/>
+<circle cx="263.49191822111607" cy="257.8304177346581" r="1.3938398650827821" fill="#c23616" opacity="0.65"/>
+<circle cx="281.15032865522153" cy="253.59408161210013" r="2.9358190161092352" fill="#c23616" opacity="0.65"/>
+<circle cx="366.34765120506927" cy="197.61673256875156" r="3.009146496639005" fill="#c23616" opacity="0.65"/>
+<circle cx="419.04733881245875" cy="157.81870504295512" r="1.560100575069555" fill="#c23616" opacity="0.65"/>
+<circle cx="275.6419632039615" cy="255.9151188868418" r="2.7244700433093385" fill="#c23616" opacity="0.65"/>
+<circle cx="400.2951094527816" cy="339.9867814242316" r="2.2616118969617673" fill="#c23616" opacity="0.65"/>
+<circle cx="188.70355287377606" cy="316.36265461427683" r="1.7937907514415201" fill="#c23616" opacity="0.65"/>
+<circle cx="351.03039127490774" cy="168.0367486285104" r="1.7446229656247851" fill="#c23616" opacity="0.65"/>
+<circle cx="268.3716699104116" cy="210.1924113075802" r="3.6392404534531124" fill="#c23616" opacity="0.65"/>
+<circle cx="212.21662172698416" cy="306.75061086105416" r="3.3522019266465577" fill="#c23616" opacity="0.65"/>
+<circle cx="194.36887988729723" cy="195.4403246792208" r="2.562086815020166" fill="#c23616" opacity="0.65"/>
+<circle cx="362.63532568841583" cy="228.07322222139192" r="1.5665843091392162" fill="#c23616" opacity="0.65"/>
+<circle cx="233.9904090149139" cy="263.0146612297176" r="1.612040394671567" fill="#c23616" opacity="0.65"/>
+<circle cx="350.3090899878407" cy="342.73821281713026" r="1.2690391672640544" fill="#c23616" opacity="0.65"/>
+<circle cx="375.44899588116095" cy="212.12567664435483" r="3.594024472432352" fill="#c23616" opacity="0.65"/>
+<circle cx="265.85282483312767" cy="196.20287460580585" r="1.7803413749484207" fill="#c23616" opacity="0.65"/>
+<circle cx="342.38323004945414" cy="331.138899731377" r="1.04702669577091" fill="#c23616" opacity="0.65"/>
+<circle cx="285.27628976196866" cy="170.17320575170743" r="2.3895156489525107" fill="#c23616" opacity="0.65"/>
+<line x1="348.28715514797295" y1="213.57823073674808" x2="235.17017930164002" y2="351.52522384121767" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="271.4721828859183" y1="179.04681890846405" x2="414.17582608322846" y2="253.27032305103785" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="183.75627275803708" y1="278.67834109617206" x2="296.3556771130061" y2="350.18784439993397" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="305.390605391367" y1="403.82018262553174" x2="402.02211855897076" y2="250.3186256302206" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="285.6151458848217" y1="289.7182560795409" x2="325.8551091410982" y2="184.13955414565862" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="301.85808587066276" y1="199.6866606756157" x2="280.70080092591525" y2="216.33067032680287" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="387.37007334992086" y1="270.5064639637567" x2="242.9080055330519" y2="216.6426827811665" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+<line x1="223.09612371034746" y1="225.00636874581687" x2="289.0791322677251" y2="191.900865096286" stroke="#fbc531" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+
+    <!-- 3. 反光與3D陰影層 -->
+    <circle cx="300" cy="270" r="190" fill="url(#sphere3DGrad)" style="mix-blend-mode: multiply;" />
+  </g>
+  
+  <!-- 4. 高光 (Highlight) -->
+  <ellipse cx="230" cy="180" rx="65" ry="38" transform="rotate(-30 230 180)" fill="#ffffff" opacity="0.65" filter="url(#glow)" />
+  <circle cx="200" cy="150" r="15" fill="#ffffff" opacity="0.4" filter="url(#glow)" />
+</svg>

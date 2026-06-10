@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <!-- 背景：純白色 -->
+  <rect width="600" height="600" fill="#ffffff" />
+  
+  <defs>
+    <!-- 軟陰影漸層 -->
+    <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.16" />
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    
+    <!-- 基礎 3D 遮罩，把內含物限制在圓圈內 -->
+    <clipPath id="beadClip">
+      <circle cx="300" cy="270" r="190" />
+    </clipPath>
+    
+    <!-- 高光與立體感的 3D 覆蓋漸層 -->
+    <radialGradient id="sphere3DGrad" cx="28%" cy="23%" r="72%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="82%" stop-color="#000000" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.38" />
+    </radialGradient>
+
+    <!-- 高光濾鏡 -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  
+    <radialGradient id="crystalBaseGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#a5f3fc" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#0891b2" />
+    </radialGradient>
+      </defs>
+
+  <!-- 軟陰影 -->
+  <ellipse cx="300" cy="485" rx="140" ry="18" fill="url(#shadowGrad)" />
+
+  <!-- 圓珠主體 -->
+  <g clip-path="url(#beadClip)">
+    <!-- 1. 基礎色 -->
+    <circle cx="300" cy="270" r="190" fill="url(#crystalBaseGrad)" />
+    
+    <!-- 2. 特有的包體/紋理 -->
+    <line x1="422.6731893448232" y1="271.9705649799107" x2="408.76193474843603" y2="274.6876772158612" stroke="#ffffff" stroke-width="1.6137040109611007" opacity="0.35" stroke-linecap="round"/>
+<line x1="393.98212767418954" y1="377.02162632405816" x2="404.11615739221816" y2="364.2477077881085" stroke="#ffffff" stroke-width="2.356696237906135" opacity="0.35" stroke-linecap="round"/>
+<line x1="362.8520193982695" y1="163.69769829954748" x2="326.35188954287514" y2="131.23650644567533" stroke="#ffffff" stroke-width="2.383863799033179" opacity="0.35" stroke-linecap="round"/>
+<line x1="154.57707682289765" y1="323.57265207612727" x2="161.52715443768102" y2="301.2030878129917" stroke="#ffffff" stroke-width="1.9275298928869233" opacity="0.35" stroke-linecap="round"/>
+<line x1="191.24746591552366" y1="415.4303694295959" x2="150.45986361413497" y2="356.7276966042118" stroke="#ffffff" stroke-width="1.750519967361015" opacity="0.35" stroke-linecap="round"/>
+<line x1="175.10227302445855" y1="404.20034262514946" x2="169.8638335113901" y2="409.59619649721844" stroke="#ffffff" stroke-width="2.2690736994154577" opacity="0.35" stroke-linecap="round"/>
+<line x1="402.2768613296648" y1="176.929029236926" x2="445.21914836328506" y2="136.66035662963623" stroke="#ffffff" stroke-width="2.5889481772678664" opacity="0.35" stroke-linecap="round"/>
+<line x1="363.80789391259896" y1="397.8243986323673" x2="380.1027802448152" y2="383.5084457295693" stroke="#ffffff" stroke-width="2.5226045668555344" opacity="0.35" stroke-linecap="round"/>
+<line x1="354.70566480034904" y1="153.42063411982963" x2="345.8222622978792" y2="142.82391202068538" stroke="#ffffff" stroke-width="2.773873102016978" opacity="0.35" stroke-linecap="round"/>
+<line x1="238.82101270501153" y1="311.58370165039855" x2="289.03767477379006" y2="266.9125335944966" stroke="#ffffff" stroke-width="2.4547460003099673" opacity="0.35" stroke-linecap="round"/>
+
+    <!-- 3. 反光與3D陰影層 -->
+    <circle cx="300" cy="270" r="190" fill="url(#sphere3DGrad)" style="mix-blend-mode: multiply;" />
+  </g>
+  
+  <!-- 4. 高光 (Highlight) -->
+  <ellipse cx="230" cy="180" rx="65" ry="38" transform="rotate(-30 230 180)" fill="#ffffff" opacity="0.65" filter="url(#glow)" />
+  <circle cx="200" cy="150" r="15" fill="#ffffff" opacity="0.4" filter="url(#glow)" />
+</svg>
