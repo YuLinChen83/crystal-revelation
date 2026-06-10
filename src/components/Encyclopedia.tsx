@@ -769,6 +769,7 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                 padding: isMobileOrTablet ? '12px 16px' : '12px 40px',
                 width: '100%',
                 boxSizing: 'border-box',
+                fontSize: isMobileOrTablet ? 'inherit' : '13px', // 非手機版下滑置頂時文字維持 13px 不變大
               }}
             >
               {isCollapsed ? (
@@ -833,7 +834,15 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                 </div>
               ) : (
                 /* 展開狀態：完整懸浮篩選面板 */
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxHeight: '70vh', overflowY: 'auto', paddingBottom: '8px' }}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  width: '100%',
+                  maxHeight: isMobileOrTablet ? '70vh' : 'none',
+                  overflowY: isMobileOrTablet ? 'auto' : 'visible',
+                  paddingBottom: '8px'
+                }}>
                   {renderFilterFields()}
                   
                   {/* 控制列（收合與結果統計） */}
