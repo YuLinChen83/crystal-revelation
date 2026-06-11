@@ -16,6 +16,19 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth <= 768;
+
   // 判斷是否為唯讀（從特定水晶卡片進入）
   const isReadOnly = target !== '全站建議 / 其他';
 
@@ -78,7 +91,22 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
         style={styles.modal}
         onClick={(e) => e.stopPropagation()}
       >
-        <button style={styles.closeBtn} onClick={onClose}>✕</button>
+        <button
+          style={{
+            ...styles.closeBtn,
+            fontSize: isMobile ? '20px' : '16px',
+            padding: isMobile ? '12px' : '4px',
+            top: isMobile ? '12px' : '20px',
+            right: isMobile ? '12px' : '20px',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={onClose}
+        >
+          ✕
+        </button>
 
         {status === 'success' ? (
           <div style={styles.successContainer}>
@@ -117,7 +145,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
                 </div>
               ) : (
                 <select
-                  style={styles.select}
+                  style={{
+                    ...styles.select,
+                    fontSize: isMobile ? '16px' : '13px',
+                  }}
                   value={crystalName}
                   onChange={(e) => setCrystalName(e.target.value)}
                 >
@@ -134,7 +165,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
             <div style={styles.formGroup}>
               <label style={styles.label}>問題類型</label>
               <select
-                style={styles.select}
+                style={{
+                  ...styles.select,
+                  fontSize: isMobile ? '16px' : '13px',
+                }}
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
               >
@@ -149,7 +183,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
             <div style={styles.formGroup}>
               <label style={styles.label}>具體說明 (必填)</label>
               <textarea
-                style={styles.textarea}
+                style={{
+                  ...styles.textarea,
+                  fontSize: isMobile ? '16px' : '13px',
+                }}
                 placeholder="例如：紫水晶的硬度標記為 7，但有些地方說明寫成 6... / 這顆水晶的圖檔跟實際有色差，應該偏黃色..."
                 value={description}
                 onChange={(e) => {
@@ -163,7 +200,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ target, onClose })
               <label style={styles.label}>聯絡方式 (選填)</label>
               <input
                 type="text"
-                style={styles.input}
+                style={{
+                  ...styles.input,
+                  fontSize: isMobile ? '16px' : '13px',
+                }}
                 placeholder="Email 或 LINE 等，方便向您核對與致謝"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
