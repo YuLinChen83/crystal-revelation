@@ -49,11 +49,21 @@ export const BraceletSimulator: React.FC<{
   const [bracelet, setBracelet] = useState<BeadInBracelet[]>([]);
   const [selectedCrystal, setSelectedCrystal] = useState<string>(crystalsData[0].id);
   const [isStringed, setIsStringed] = useState<boolean>(false);
+  const [isStringing, setIsStringing] = useState<boolean>(false);
+  const [stringingPhase, setStringingPhase] = useState<'idle' | 'resonating' | 'completed'>('idle');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [stringColor, setStringColor] = useState<string>('#a4b0be');
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   const [showBetaTooltip, setShowBetaTooltip] = useState<boolean>(false);
+
+  const stringingTimersRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    return () => {
+      stringingTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   // 當 BETA Tooltip 展開時，點擊頁面其他地方自動關閉 Tooltip
   useEffect(() => {
@@ -131,30 +141,10 @@ export const BraceletSimulator: React.FC<{
   // 將特質排序（權重高的排前面）
   const sortedTraits = Object.keys(traitCounts).sort((a, b) => traitCounts[b] - traitCounts[a]);
 
-  // 播放水晶相撞音效
+  // 播放水晶相撞音效（已依使用者需求停用）
   const playClinkSound = (frequency = 1800, duration = 0.08) => {
-    try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + duration);
-      
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    } catch (e) {
-      console.warn('Audio blocked');
-    }
+    void frequency;
+    void duration;
   };
 
   useEffect(() => {
@@ -235,11 +225,25 @@ export const BraceletSimulator: React.FC<{
       triggerNotification('手鍊珠子太少，無法穿線');
       return;
     }
-    setIsStringed(true);
-    playClinkSound(2500, 0.15);
-    setTimeout(() => playClinkSound(2800, 0.1), 100);
-    setTimeout(() => playClinkSound(3200, 0.2), 200);
-    triggerNotification('手鍊穿線完成！✨ 能量已串連。');
+    
+    // 清除舊定時器
+    stringingTimersRef.current.forEach(clearTimeout);
+    stringingTimersRef.current = [];
+
+    setIsStringing(true);
+    setStringingPhase('resonating');
+    
+    const t1 = setTimeout(() => {
+      setIsStringing(false);
+      setIsStringed(true);
+      setStringingPhase('completed');
+    }, 800); // 凝聚自轉旋轉 800ms
+
+    const t2 = setTimeout(() => {
+      setStringingPhase('idle');
+    }, 2600); // 完成提示展示 1800ms（多停留 1s），合計 2.6 秒後淡出
+
+    stringingTimersRef.current.push(t1, t2);
   };
 
   const handleCapture = () => {
@@ -382,7 +386,7 @@ export const BraceletSimulator: React.FC<{
                     style={styles.trayInfoBtn}
                     title="查看水晶百科"
                   >
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10" />
                       <line x1="12" y1="16" x2="12" y2="12" />
                       <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -418,12 +422,70 @@ export const BraceletSimulator: React.FC<{
     );
   };
 
+  const renderStringingTools = () => {
+    if (!isStringed) return null;
+    return (
+      <div style={{
+        padding: isResponsiveStack ? '16px' : '0px',
+        borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
+        backgroundColor: isResponsiveStack ? 'var(--bg-primary)' : 'transparent',
+      }}>
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          style={styles.colorPickerContainer}
+        >
+          <span style={styles.colorPickerLabel}>選擇穿線顏色：</span>
+          <div style={styles.colorOptionsRow}>
+            {[
+              { color: '#ffffff', name: '純白' },
+              { color: '#ff7675', name: '桃紅' },
+              { color: '#f1c40f', name: '金黃' },
+              { color: '#2f3542', name: '深灰' },
+              { color: '#1e90ff', name: '靛藍' },
+            ].map(opt => (
+              <button
+                key={opt.color}
+                onClick={() => setStringColor(opt.color)}
+                title={opt.name}
+                style={{
+                  ...styles.colorCircleBtn,
+                  backgroundColor: opt.color,
+                  border: stringColor === opt.color ? '2px solid var(--text-primary)' : '1px solid var(--border-medium)',
+                }}
+              />
+            ))}
+            
+            <div style={styles.customColorWrapper} title="自訂顏色">
+              <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>🎨</span>
+              <input
+                type="color"
+                value={stringColor}
+                onChange={(e) => setStringColor(e.target.value)}
+                style={styles.customColorInput}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.button
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={handleCapture}
+          style={styles.btnExport}
+        >
+          導出手鍊 3D 渲染圖
+        </motion.button>
+      </div>
+    );
+  };
+
   const renderControlHeader = () => {
     return (
       <div
         style={{
           ...styles.controlPanel,
-          padding: isMobile ? '24px 16px' : '32px 24px',
+          padding: isMobile ? '12px 16px' : '32px 24px 24px',
           width: '100%',
           height: 'auto',
           borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
@@ -473,9 +535,11 @@ export const BraceletSimulator: React.FC<{
 
             <div style={{ 
               position: isResponsiveStack ? 'fixed' : 'absolute', 
-              bottom: isResponsiveStack ? '20px' : '22px', 
-              left: isResponsiveStack ? '50%' : '50%', 
-              transform: 'translateX(-50%)', 
+              bottom: isResponsiveStack ? '20px' : 'auto', 
+              top: isResponsiveStack ? 'auto' : '22px', 
+              left: isResponsiveStack ? '50%' : 'auto', 
+              right: isResponsiveStack ? 'auto' : '0px', 
+              transform: isResponsiveStack ? 'translateX(-50%)' : 'none', 
               zIndex: 1000, 
               pointerEvents: showBetaTooltip ? 'auto' : 'none' 
             }}>
@@ -506,137 +570,9 @@ export const BraceletSimulator: React.FC<{
           </div>
         </div>
         <p style={styles.panelSub}>選取下方收納盒中的水晶珠放入手鍊。我們將以 3D 物理引擎動態排列並展現水晶玻璃折射感。</p>
+        {/* 按鈕已移至渲染區塊右上方 */}
 
-        {isMobile ? (
-          <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px', marginBottom: '16px' }}>
-            <button
-              onClick={removeLastBead}
-              disabled={bracelet.length === 0}
-              style={{
-                ...styles.btnSecondary,
-                flex: 1,
-                fontSize: '12px',
-                padding: '10px 0',
-                opacity: bracelet.length === 0 ? 0.4 : 1,
-              }}
-            >
-              返回
-            </button>
-            <button
-              onClick={clearBracelet}
-              disabled={bracelet.length === 0}
-              style={{
-                ...styles.btnSecondary,
-                flex: 1,
-                fontSize: '12px',
-                padding: '10px 0',
-                opacity: bracelet.length === 0 ? 0.4 : 1,
-              }}
-            >
-              重置
-            </button>
-            <button
-              onClick={handleStringUp}
-              disabled={bracelet.length < 3}
-              style={{
-                ...styles.btnPrimary,
-                flex: 1.2,
-                fontSize: '12px',
-                padding: '10px 0',
-                opacity: bracelet.length < 3 ? 0.5 : 1,
-              }}
-            >
-              {isStringed ? '✨已串連' : '完成'}
-            </button>
-          </div>
-        ) : (
-          <>
-            <div style={styles.actionRow}>
-              <button
-                onClick={removeLastBead}
-                disabled={bracelet.length === 0}
-                style={{
-                  ...styles.btnSecondary,
-                  opacity: bracelet.length === 0 ? 0.4 : 1,
-                }}
-              >
-                退回一顆
-              </button>
-              <button
-                onClick={clearBracelet}
-                disabled={bracelet.length === 0}
-                style={{
-                  ...styles.btnSecondary,
-                  opacity: bracelet.length === 0 ? 0.4 : 1,
-                }}
-              >
-                清空重置
-              </button>
-            </div>
-
-            <button
-              onClick={handleStringUp}
-              disabled={bracelet.length < 3}
-              style={{
-                ...styles.btnPrimary,
-                opacity: bracelet.length < 3 ? 0.5 : 1,
-              }}
-            >
-              {isStringed ? '✨ 手鍊已串連' : '一鍵穿線收尾'}
-            </button>
-          </>
-        )}
-
-        {isStringed && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            style={styles.colorPickerContainer}
-          >
-            <span style={styles.colorPickerLabel}>選擇穿線顏色：</span>
-            <div style={styles.colorOptionsRow}>
-              {[
-                { color: '#ffffff', name: '純白' },
-                { color: '#ff7675', name: '桃紅' },
-                { color: '#f1c40f', name: '金黃' },
-                { color: '#2f3542', name: '深灰' },
-                { color: '#1e90ff', name: '靛藍' },
-              ].map(opt => (
-                <button
-                  key={opt.color}
-                  onClick={() => setStringColor(opt.color)}
-                  title={opt.name}
-                  style={{
-                    ...styles.colorCircleBtn,
-                    backgroundColor: opt.color,
-                    border: stringColor === opt.color ? '2px solid var(--text-primary)' : '1px solid var(--border-medium)',
-                  }}
-                />
-              ))}
-              
-              <div style={styles.customColorWrapper} title="自訂顏色">
-                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>🎨</span>
-                <input
-                  type="color"
-                  value={stringColor}
-                  onChange={(e) => setStringColor(e.target.value)}
-                  style={styles.customColorInput}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {isStringed && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={handleCapture}
-            style={styles.btnExport}
-          >
-            導出手鍊 3D 渲染圖
-          </motion.button>
-        )}
+        {!isResponsiveStack && renderStringingTools()}
       </div>
     );
   };
@@ -694,10 +630,16 @@ export const BraceletSimulator: React.FC<{
     <div
       style={{
         ...styles.container,
-        paddingBottom: '24px',
+        paddingBottom: isMobile ? '24px' : '0px',
+        ...(isMobile ? {} : { height: '100%', minHeight: '560px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }),
       }}
     >
-      <div style={styles.workbench}>
+      <div 
+        style={{
+          ...styles.workbench,
+          ...(isMobile ? {} : { flex: 1, minHeight: 0, overflow: 'hidden', height: '100%' }),
+        }}
+      >
         {/* 1. 操作頭部按鈕區（直式版面下放置在最上方） */}
         {isResponsiveStack && renderControlHeader()}
 
@@ -709,21 +651,88 @@ export const BraceletSimulator: React.FC<{
           style={{
             ...styles.topSection,
             flexDirection: isResponsiveStack ? 'column' : 'row',
+            ...(isMobile ? {} : { flex: 1, minHeight: 0, overflow: 'hidden' }),
           }}
         >
           {/* 左側/中間：3D Canvas 預覽，minHeight 設為至少 30vh，且移除滑鼠鍵盤操作提示 */}
           <div
             style={{
               ...styles.canvasContainer,
-              height: isMobile ? '480px' : '520px',
-              minHeight: isMobile ? '50vh' : 'auto',
+              height: isResponsiveStack ? '480px' : '100%',
+              minHeight: isResponsiveStack ? '350px' : 'auto',
               borderRight: isResponsiveStack ? 'none' : '1px solid var(--border-light)',
               borderBottom: isResponsiveStack ? '1px solid var(--border-light)' : 'none',
+              ...(isResponsiveStack ? { flex: 'none' } : { flex: 1, minHeight: 0 }),
             }}
           >
-            {/* 珠子計數器膠囊固定在右上方 */}
-            <div style={styles.beadCounterBadge}>
+            {/* 珠子計數器膠囊固定在右上方（手機版搬到左上方） */}
+            <div style={{
+              ...styles.beadCounterBadge,
+              ...(isMobile ? { left: '16px', right: 'auto' } : {})
+            }}>
               珠子數：{bracelet.length} / 24
+            </div>
+
+            {/* 控制按鈕組置於右上方（手機版垂直上下排列，且大小與穿線收尾按鈕一致） */}
+            <div style={{
+              ...styles.canvasActionGroup,
+              ...(isMobile ? { top: '16px', right: '16px', flexDirection: 'column', gap: '8px' } : {})
+            }}>
+              <button
+                onClick={removeLastBead}
+                disabled={bracelet.length === 0 || stringingPhase !== 'idle'}
+                style={{
+                  ...styles.canvasActionBtn,
+                  ...(isMobile ? { padding: '10px 20px', fontSize: '13px' } : {}),
+                  opacity: (bracelet.length === 0 || stringingPhase !== 'idle') ? 0.4 : 1,
+                }}
+                title="退回一顆"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                  <path d="M9 14L4 9l5-5" />
+                  <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+                </svg>
+                {isMobile ? '退回' : '退回一顆'}
+              </button>
+              
+              <button
+                onClick={clearBracelet}
+                disabled={bracelet.length === 0 || stringingPhase !== 'idle'}
+                style={{
+                  ...styles.canvasActionBtn,
+                  ...(isMobile ? { padding: '10px 20px', fontSize: '13px' } : {}),
+                  opacity: (bracelet.length === 0 || stringingPhase !== 'idle') ? 0.4 : 1,
+                }}
+                title="清空重置"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                {isMobile ? '重置' : '清空重置'}
+              </button>
+            </div>
+
+            {/* 一鍵穿線收尾按鈕置於渲染區右下角 */}
+            <div style={styles.canvasActionBottomGroup}>
+              <button
+                onClick={handleStringUp}
+                disabled={bracelet.length < 3 || stringingPhase !== 'idle'}
+                style={{
+                  ...styles.canvasActionBtnPrimary,
+                  opacity: (bracelet.length < 3 || stringingPhase !== 'idle') ? 0.5 : 1,
+                }}
+                title="一鍵穿線收尾"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                </svg>
+                {stringingPhase !== 'idle'
+                  ? (stringingPhase === 'resonating' ? '共鳴中...' : '已串連！')
+                  : isStringed 
+                    ? (isMobile ? '✨ 已串連' : '✨ 手鍊已串連') 
+                    : (isMobile ? '穿線收尾' : '一鍵穿線收尾')}
+              </button>
             </div>
 
             {/* 3D 操作提示，僅在手機版以外顯示 */}
@@ -735,14 +744,14 @@ export const BraceletSimulator: React.FC<{
             
             <Canvas
               gl={{ preserveDrawingBuffer: true }}
-              camera={{ position: [0, 0, isMobile ? 8 : 9], fov: 45 }}
-              style={{ background: '#ffffff' }}
+              camera={{ position: [0, 0, isMobile ? 10.5 : 9], fov: 45 }}
+              style={{ background: '#ffffff', width: '100%', height: '100%', display: 'block' }}
             >
               <ambientLight intensity={1.2} />
               <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
               <pointLight position={[-5, -5, -5]} intensity={0.5} />
               
-              <Bracelet3D bracelet={bracelet} isStringed={isStringed} stringColor={stringColor} />
+              <Bracelet3D bracelet={bracelet} isStringed={isStringed} stringColor={stringColor} isStringing={isStringing} />
               
               <OrbitControls 
                 enablePan={true}
@@ -751,6 +760,133 @@ export const BraceletSimulator: React.FC<{
                 minDistance={3}
               />
             </Canvas>
+
+            <AnimatePresence>
+              {stringingPhase !== 'idle' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: stringingPhase === 'resonating' ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
+                    backdropFilter: stringingPhase === 'resonating' ? 'blur(3px)' : 'none',
+                    zIndex: 20,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {/* 凝聚金色光暈外圈 (積蓄蓄力：前段縮小抖動蓄力，最後一瞬間凝聚至中心並猛烈向外放射) */}
+                  <motion.div
+                    key="outer-ring"
+                    animate={stringingPhase === 'resonating' ? {
+                      scale: [1.2, 0.9, 0.95, 0.7, 0.8, 0.1, 2.2, 2.4],
+                      opacity: [0.4, 0.6, 0.5, 0.7, 0.6, 1.0, 0.8, 0.0],
+                      rotate: [0, 60, 90, 150, 180, 240, 320, 360],
+                    } : {
+                      scale: [1.0, 1.03, 1.0],
+                      opacity: [0.8, 0.4, 0.8],
+                      rotate: 0,
+                    }}
+                    transition={stringingPhase === 'resonating' ? {
+                      duration: 0.8,
+                      times: [0, 0.2, 0.35, 0.55, 0.7, 0.8, 0.92, 1.0],
+                      ease: 'linear',
+                    } : {
+                      repeat: Infinity,
+                      duration: 1.5,
+                      ease: 'easeInOut',
+                    }}
+                    style={{
+                      width: '240px',
+                      height: '240px',
+                      borderRadius: '50%',
+                      border: stringingPhase === 'resonating' ? '2px dashed #f1c40f' : '2px solid #f1c40f',
+                      boxShadow: stringingPhase === 'resonating' 
+                        ? '0 0 35px rgba(241, 196, 15, 0.6), inset 0 0 25px rgba(241, 196, 15, 0.4)'
+                        : '0 0 35px rgba(241, 196, 15, 0.5), inset 0 0 25px rgba(241, 196, 15, 0.3)',
+                      position: 'absolute',
+                    }}
+                  />
+                  
+                  {/* 凝聚金色光暈內圈 */}
+                  <motion.div
+                    key="inner-ring"
+                    animate={stringingPhase === 'resonating' ? {
+                      scale: [1.0, 0.75, 0.8, 0.55, 0.65, 0.05, 1.8, 2.0],
+                      opacity: [0.5, 0.7, 0.6, 0.8, 0.7, 1.0, 0.7, 0.0],
+                      rotate: [360, 300, 270, 210, 180, 120, 40, 0],
+                    } : {
+                      scale: [1.0, 0.97, 1.0],
+                      opacity: [0.7, 0.5, 0.7],
+                      rotate: 0,
+                    }}
+                    transition={stringingPhase === 'resonating' ? {
+                      duration: 0.8,
+                      times: [0, 0.2, 0.35, 0.55, 0.7, 0.8, 0.92, 1.0],
+                      ease: 'linear',
+                    } : {
+                      repeat: Infinity,
+                      duration: 1.2,
+                      ease: 'easeInOut',
+                    }}
+                    style={{
+                      width: '180px',
+                      height: '180px',
+                      borderRadius: '50%',
+                      border: stringingPhase === 'resonating' 
+                        ? '1px dashed rgba(241, 196, 15, 0.7)'
+                        : '1px solid rgba(241, 196, 15, 0.6)',
+                      boxShadow: stringingPhase === 'resonating'
+                        ? '0 0 25px rgba(241, 196, 15, 0.5)'
+                        : '0 0 25px rgba(241, 196, 15, 0.5)',
+                      position: 'absolute',
+                    }}
+                  />
+
+                  {/* 粒子磨砂文字卡片：凝聚階段不顯示，僅在完成階段 (completed) 跳出 */}
+                  <AnimatePresence>
+                    {stringingPhase === 'completed' && (
+                      <motion.div
+                        initial={{ scale: 0.9, y: 10, opacity: 0 }}
+                        animate={{ scale: 1, y: 0, opacity: 1 }}
+                        exit={{ scale: 0.9, y: -10, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid rgba(241, 196, 15, 0.45)',
+                          borderRadius: '8px',
+                          padding: '12px 20px',
+                          boxShadow: '0 4px 20px rgba(241, 196, 15, 0.12)',
+                          color: '#b58f22',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          letterSpacing: '1px',
+                          zIndex: 21,
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                        }}
+                      >
+                        <div>✨ 手鍊穿線完成！能量已串連 ✨</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 'normal' }}>
+                          BRACELET COMPLETED & RESONATED
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence>
               {showNotification && (
@@ -766,14 +902,17 @@ export const BraceletSimulator: React.FC<{
             </AnimatePresence>
           </div>
 
+          {/* 手機版：將穿線顏色與導出按鈕放在 3D 渲染區的下方 */}
+          {isResponsiveStack && renderStringingTools()}
+
           {/* 右側：控制台 (桌面版在此渲染，寬度微調為 320px 以防切掉) */}
           {!isResponsiveStack && (
             <div
               style={{
                 ...styles.controlPanel,
                 padding: '0px',
-                width: '320px',
-                height: '520px',
+                width: '340px',
+                height: '100%',
               }}
             >
               {renderControlHeader()}
@@ -1036,13 +1175,38 @@ interface Bracelet3DProps {
   bracelet: BeadInBracelet[];
   isStringed: boolean;
   stringColor: string;
+  isStringing: boolean;
 }
-const Bracelet3D: React.FC<Bracelet3DProps> = ({ bracelet, isStringed, stringColor }) => {
+const Bracelet3D: React.FC<Bracelet3DProps> = ({ bracelet, isStringed, stringColor, isStringing }) => {
   const radius = 2.4;
   const ringRef = useRef<THREE.Mesh>(null);
+  
+  const startRotationRef = useRef<number>(0);
+  const stringingStartRef = useRef<number>(-1);
+  const wasStringingRef = useRef<boolean>(false);
 
-  useFrame((_, delta) => {
-    if (ringRef.current) {
+  const easeInOutQuad = (x: number): number => {
+    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  };
+
+  useFrame((state, delta) => {
+    if (!ringRef.current) return;
+
+    if (isStringing) {
+      if (!wasStringingRef.current) {
+        wasStringingRef.current = true;
+        stringingStartRef.current = state.clock.getElapsedTime();
+        startRotationRef.current = ringRef.current.rotation.z;
+      }
+      const elapsed = state.clock.getElapsedTime() - stringingStartRef.current;
+      const t = Math.min(elapsed / 0.8, 1);
+      const easeValue = easeInOutQuad(t);
+      ringRef.current.rotation.z = startRotationRef.current + easeValue * Math.PI * 2;
+    } else {
+      if (wasStringingRef.current) {
+        wasStringingRef.current = false;
+        stringingStartRef.current = -1;
+      }
       ringRef.current.rotation.z += 0.05 * delta;
     }
   });
@@ -1059,7 +1223,7 @@ const Bracelet3D: React.FC<Bracelet3DProps> = ({ bracelet, isStringed, stringCol
       <lineLoop geometry={lineGeometry} {...({} as any)}>
         <lineBasicMaterial
           color={isStringed ? stringColor : "#eccc68"}
-          linewidth={2}
+          linewidth={1.2}
           transparent
           opacity={isStringed ? 0.8 : 0.25}
         />
@@ -1201,7 +1365,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12px',
     color: 'var(--text-secondary)',
     lineHeight: '1.6',
-    margin: '0 0 24px 0',
+    margin: '0',
   },
   traySection: {
     padding: '20px 24px',
@@ -1224,7 +1388,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
   },
   sectionTitle: {
-    fontSize: '13px',
+    fontSize: '14px',
     fontWeight: '500',
     color: 'var(--text-secondary)',
     margin: 0,
@@ -1287,8 +1451,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   trayInfoBtn: {
     position: 'absolute',
-    top: '4px',
-    right: '4px',
+    top: '2px',
+    right: '2px',
     background: 'none',
     border: 'none',
     cursor: 'pointer',
@@ -1364,17 +1528,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingTop: '20px',
   },
   analysisCard: {
+    marginTop: '4px',
     padding: '16px',
     backgroundColor: 'var(--bg-secondary)',
     border: '1px solid var(--border-light)',
     borderRadius: '4px',
   },
   emptyAnalysisCard: {
+    marginTop: '4px',
     padding: '16px',
     backgroundColor: 'var(--bg-secondary)',
     border: '1px solid var(--border-light)',
     borderRadius: '4px',
-    fontSize: '11px',
+    fontSize: '13px',
     color: 'var(--text-tertiary)',
     lineHeight: '1.6',
     textAlign: 'center',
@@ -1385,7 +1551,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
   },
   analysisLabel: {
-    fontSize: '10px',
+    fontSize: '12px',
     color: 'var(--text-tertiary)',
     textTransform: 'uppercase',
     fontWeight: '500',
@@ -1396,7 +1562,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px 10px',
   },
   combinationItem: {
-    fontSize: '12px',
+    fontSize: '13px',
     color: 'var(--text-primary)',
     fontWeight: '500',
   },
@@ -1406,7 +1572,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
   },
   traitBadge: {
-    fontSize: '10px',
+    fontSize: '11px',
     backgroundColor: '#ffffff',
     border: '1px solid var(--border-light)',
     padding: '2px 8px',
@@ -1423,7 +1589,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingTop: '12px',
   },
   traitDetailItem: {
-    fontSize: '11px',
+    fontSize: '12px',
     lineHeight: '1.5',
     color: 'var(--text-secondary)',
     display: 'flex',
@@ -1488,6 +1654,51 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '100%',
     opacity: 0,
     cursor: 'pointer',
+  },
+  canvasActionGroup: {
+    position: 'absolute',
+    top: '60px',
+    right: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    zIndex: 10,
+  },
+  canvasActionBtn: {
+    backgroundColor: '#ffffff',
+    border: '1.5px solid var(--text-primary)',
+    color: 'var(--text-primary)',
+    padding: '8px 16px',
+    fontSize: '12px',
+    fontWeight: '600',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  },
+  canvasActionBtnPrimary: {
+    backgroundColor: 'var(--text-primary)',
+    border: '1.5px solid var(--text-primary)',
+    color: '#ffffff',
+    padding: '10px 20px',
+    fontSize: '13px',
+    fontWeight: '600',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  },
+  canvasActionBottomGroup: {
+    position: 'absolute',
+    bottom: '16px',
+    right: '16px',
+    zIndex: 10,
   },
 };
 

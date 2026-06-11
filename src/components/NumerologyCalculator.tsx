@@ -410,7 +410,7 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             >
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 ✨ <strong>已經將喜愛的水晶加入收藏了嗎？</strong><br />
-                點擊下方按鈕前往 3D 手鍊製作，我們將為您自動載入「只看收藏」的篩選，方便您設計專屬共振手鍊。
+                點擊下方按鈕前往 3D 手鍊製作，我們將為您自動載入「收藏」的篩選，方便您設計專屬共振手鍊。
               </div>
               <button
                 onClick={() => onNavigateToDIY(true)}

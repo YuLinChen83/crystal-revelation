@@ -19,6 +19,7 @@ function App() {
   const [defaultShowFavoritesInDIY, setDefaultShowFavoritesInDIY] = useState<boolean>(false);
   const [defaultNumerologyFilter, setDefaultNumerologyFilter] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDoubleColumn, setIsDoubleColumn] = useState(true);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState('全站建議 / 其他');
 
@@ -46,6 +47,7 @@ function App() {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
+      setIsDoubleColumn(window.innerWidth > 1080);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -76,7 +78,12 @@ function App() {
   };
 
   return (
-    <div style={styles.appContainer}>
+    <div 
+      style={{
+        ...styles.appContainer,
+        ...(currentPage === 'diy' && isDoubleColumn ? { height: '100vh', minHeight: '560px', overflowY: 'auto' } : {})
+      }}
+    >
       {/* 頂部極簡導覽列 */}
       <header style={styles.header}>
         <div
@@ -183,9 +190,13 @@ function App() {
         style={{
           ...styles.mainContent,
           paddingTop: isMobile ? '0px' : '20px',
+          ...(currentPage === 'diy' && isDoubleColumn ? { display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', flex: 1 } : {}),
         }}
       >
-        <div className="container">
+        <div 
+          className="container"
+          style={currentPage === 'diy' && isDoubleColumn ? { display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', flex: 1, width: '100%' } : undefined}
+        >
           {currentPage === 'encyclopedia' && (
             <Encyclopedia
               favorites={favorites}
