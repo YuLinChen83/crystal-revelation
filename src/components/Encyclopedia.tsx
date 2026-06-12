@@ -147,7 +147,15 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
     
     const mineralMatch = selectedMineral === 'all' || c.mineralClass === selectedMineral;
     const systemMatch = selectedSystem === 'all' || c.crystalSystem === selectedSystem;
-    const hardnessMatch = selectedHardness === 'all' || Math.floor(c.hardness) === parseInt(selectedHardness);
+    
+    let hardnessMatch = true;
+    if (selectedHardness !== 'all') {
+      const [minStr, maxStr] = selectedHardness.split('-');
+      const min = parseFloat(minStr);
+      const max = parseFloat(maxStr);
+      const val = c.hardness;
+      hardnessMatch = val >= min && (max === 10 ? val <= max : val < max);
+    }
 
     return colorMatch && numMatch && traitMatch && favMatch && mineralMatch && systemMatch && hardnessMatch;
   });
@@ -176,7 +184,9 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
     selectedTrait.forEach((tr) => tags.push(tr));
     if (selectedMineral !== 'all') tags.push(selectedMineral.split(' ')[0]);
     if (selectedSystem !== 'all') tags.push(selectedSystem.split(' ')[0]);
-    if (selectedHardness !== 'all') tags.push(`硬度 ${selectedHardness}`);
+    if (selectedHardness !== 'all') {
+      tags.push(`硬度 ${selectedHardness.replace('-', '~')}`);
+    }
     return tags;
   };
 
@@ -621,10 +631,21 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
                     fontSize: isMobileOrTablet ? '16px' : '12px',
                   }}
                 >
-                  <option value="all">搜尋硬度家族 (全部)...</option>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <option key={num} value={num.toString()}>
-                      硬度 {num} 級
+                  <option value="all">搜尋硬度區間 (全部)...</option>
+                  {[
+                    { label: '0 ~ 1', value: '0-1' },
+                    { label: '1 ~ 2', value: '1-2' },
+                    { label: '2 ~ 3', value: '2-3' },
+                    { label: '3 ~ 4', value: '3-4' },
+                    { label: '4 ~ 5', value: '4-5' },
+                    { label: '5 ~ 6', value: '5-6' },
+                    { label: '6 ~ 7', value: '6-7' },
+                    { label: '7 ~ 8', value: '7-8' },
+                    { label: '8 ~ 9', value: '8-9' },
+                    { label: '9 ~ 10', value: '9-10' },
+                  ].map((range) => (
+                    <option key={range.value} value={range.value}>
+                      硬度 {range.label} 級
                     </option>
                   ))}
                 </select>

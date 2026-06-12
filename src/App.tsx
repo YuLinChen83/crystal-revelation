@@ -94,7 +94,13 @@ function App() {
             padding: isMobile ? '16px 20px' : '20px 40px',
           }}
         >
-          <div style={styles.logo}>
+          <div 
+            style={{ ...styles.logo, cursor: 'pointer' }}
+            onClick={() => {
+              navigateToPage('encyclopedia');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
             <span style={styles.logoMain}>水晶啟示錄</span>
             <span style={styles.logoSub}>Crystal Revelation</span>
           </div>
