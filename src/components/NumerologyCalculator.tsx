@@ -1,6 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { crystalsData, type Crystal } from '../data/crystals';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const AD_TEMPLATES = [
+  {
+    prefix: "🔮 能量調頻：配戴水晶能平衡磁場，也推薦到 ",
+    suffix: " 探索療癒與占卜直播，在聲音與社群共鳴中放鬆身心。"
+  },
+  {
+    prefix: "✨ 心靈充能：生活疲憊時，不妨去 ",
+    suffix: " 聆聽音樂與療癒直播，透過溫暖的歌聲與交流為心靈找回光芒。"
+  },
+  {
+    prefix: "🌿 共振日常：除了水晶的陪伴，也歡迎到 ",
+    suffix: " 探索音樂、療癒與塔羅占卜直播，在空中社群裡找到心靈共鳴。"
+  }
+];
 
 interface NumerologyResult {
   lifePathNumber: number;
@@ -28,6 +43,11 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   const [showInfoTooltip, setShowInfoTooltip] = useState<boolean>(false);
+
+  // 隨機選擇心靈調頻廣告索引，當靈數結果改變時重新隨機，防止頻繁閃爍
+  const adIndex = useMemo(() => {
+    return Math.floor(Math.random() * AD_TEMPLATES.length);
+  }, [result?.lifePathNumber]);
 
   // 當 Tooltip 展開時，點擊頁面其他地方自動關閉 Tooltip
   useEffect(() => {
@@ -429,6 +449,37 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
                 前往製作手鍊 ➔
               </button>
             </div>
+
+            {/* 心靈調頻 17LIVE 隨機置入 */}
+            {(() => {
+              const ad = AD_TEMPLATES[adIndex];
+              return (
+                <div
+                  style={{
+                    marginTop: '16px',
+                    textAlign: 'center',
+                    fontSize: '11px',
+                    color: 'var(--text-tertiary)',
+                    lineHeight: '1.6',
+                  }}
+                >
+                  {ad.prefix}
+                  <a
+                    href="https://17.live"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'underline',
+                      fontWeight: '500',
+                    }}
+                  >
+                    17LIVE
+                  </a>
+                  {ad.suffix}
+                </div>
+              );
+            })()}
           </motion.div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate, matchPath } from 'react-router-dom';
 import { Encyclopedia } from './components/Encyclopedia';
 import { NumerologyCalculator } from './components/NumerologyCalculator';
 import { BraceletSimulator } from './components/BraceletSimulator';
@@ -10,10 +11,29 @@ import './App.css';
 type Page = 'encyclopedia' | 'numerology' | 'diy';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>(() => {
-    const stored = localStorage.getItem('crystal_current_page');
-    return (stored as Page) || 'encyclopedia';
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [currentPage, setCurrentPage] = useState<Page>('encyclopedia');
+
+  // 用於同步 URL 到 currentPage
+  useEffect(() => {
+    const path = location.pathname;
+    const cleanPath = path.replace(/\/$/, '').replace(/\/index\.html$/, '');
+    if (cleanPath === '/diy') {
+      setCurrentPage('diy');
+    } else if (cleanPath === '/numerology') {
+      setCurrentPage('numerology');
+    } else if (cleanPath.startsWith('/crystals/')) {
+      setCurrentPage('encyclopedia');
+    } else {
+      setCurrentPage('encyclopedia');
+    }
+  }, [location.pathname]);
+
+  const cleanPath = location.pathname.replace(/\/$/, '').replace(/\/index\.html$/, '');
+  const crystalMatch = matchPath('/crystals/:id', cleanPath);
+  const activeCrystalIdFromUrl = crystalMatch ? crystalMatch.params.id : null;
   // 用於在生命靈數測算後，一鍵帶入手鍊 DIY 的水晶 ID
   const [selectedCrystalForDIY, setSelectedCrystalForDIY] = useState<string | null>(null);
   const [defaultShowFavoritesInDIY, setDefaultShowFavoritesInDIY] = useState<boolean>(false);
@@ -55,11 +75,14 @@ function App() {
   }, []);
 
   const navigateToPage = (page: Page) => {
-    if (currentPage === page) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (page === 'diy') {
+      navigate('/diy');
+    } else if (page === 'numerology') {
+      navigate('/numerology');
+    } else {
+      navigate('/encyclopedia');
     }
-    setCurrentPage(page);
-    localStorage.setItem('crystal_current_page', page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNavigateToDIY = (enableFavoritesFilter?: boolean) => {
@@ -205,6 +228,10 @@ function App() {
         >
           {currentPage === 'encyclopedia' && (
             <Encyclopedia
+              autoOpenCrystalId={activeCrystalIdFromUrl || undefined}
+              onCloseCrystalModal={() => {
+                navigate('/encyclopedia');
+              }}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
               onOpenFeedback={handleOpenFeedback}

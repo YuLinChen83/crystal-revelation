@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { crystalsData, type Crystal } from '../data/crystals';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,6 +9,8 @@ interface EncyclopediaProps {
   onOpenFeedback: (crystalName: string) => void;
   defaultNumerologyFilter?: string[];
   onResetDefaultNumerologyFilter?: () => void;
+  autoOpenCrystalId?: string;
+  onCloseCrystalModal?: () => void;
 }
 
 export const Encyclopedia: React.FC<EncyclopediaProps> = ({
@@ -16,7 +19,10 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
   onOpenFeedback,
   defaultNumerologyFilter = [],
   onResetDefaultNumerologyFilter,
+  autoOpenCrystalId,
+  onCloseCrystalModal,
 }) => {
+  const navigate = useNavigate();
   const [selectedFavoriteFilter, setSelectedFavoriteFilter] = useState<'all' | 'favorites'>('all');
   const [selectedColor, setSelectedColor] = useState<string[]>([]);
   const [selectedNumerology, setSelectedNumerology] = useState<string[]>([]);
@@ -77,6 +83,39 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
   const [activeModalCrystal, setActiveModalCrystal] = useState<Crystal | null>(null);
   const [modalTab, setModalTab] = useState<'science' | 'myth'>('science');
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  // 監聽 URL 帶入的水晶 ID 來自動開啟 Modal
+  useEffect(() => {
+    if (autoOpenCrystalId) {
+      const crystal = crystalsData.find(c => c.id === autoOpenCrystalId);
+      if (crystal) {
+        setActiveModalCrystal(crystal);
+        setModalTab('science');
+      }
+    } else {
+      setActiveModalCrystal(null);
+    }
+  }, [autoOpenCrystalId]);
+
+  // 當開啟水晶 Modal 時動態調整頁面標題與描述，有利於 SPA 執行期的 SEO 展示
+  useEffect(() => {
+    if (activeModalCrystal) {
+      const traitsText = activeModalCrystal.traits && activeModalCrystal.traits.length > 0 
+        ? activeModalCrystal.traits.slice(0, 2).join('與') + '之石'
+        : '能量共振之石';
+      document.title = `${activeModalCrystal.name} (${activeModalCrystal.englishName})：${traitsText} | 水晶啟示錄 - 水晶圖鑑・手鍊設計`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', `${activeModalCrystal.name}（${activeModalCrystal.chemicalFormula}），硬度 ${activeModalCrystal.hardness}，${activeModalCrystal.crystalSystem}。${activeModalCrystal.shortDescription}`);
+      }
+    } else {
+      document.title = '水晶啟示錄 Crystal Revelation · 純白極簡水晶探索平台';
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', '純白極簡水晶探索平台，提供水晶百科、3D 手鍊工坊與生命靈數計算，幫您設計專屬共振手鍊。');
+      }
+    }
+  }, [activeModalCrystal]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -917,8 +956,7 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
               isFavorite={favorites.includes(crystal.id)}
               onToggleFavorite={onToggleFavorite}
               onClick={() => {
-                setActiveModalCrystal(crystal);
-                setModalTab('science');
+                navigate(`/crystals/${crystal.id}`);
               }}
             />
           ))}
@@ -932,7 +970,7 @@ export const Encyclopedia: React.FC<EncyclopediaProps> = ({
             crystal={activeModalCrystal}
             activeTab={modalTab}
             setActiveTab={setModalTab}
-            onClose={() => setActiveModalCrystal(null)}
+            onClose={onCloseCrystalModal || (() => setActiveModalCrystal(null))}
             isMobile={isMobileOrTablet}
             onOpenFeedback={onOpenFeedback}
             favorites={favorites}
