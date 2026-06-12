@@ -4,6 +4,11 @@ const path = require('path');
 const distDir = path.join(__dirname, '../dist');
 const crystalsFilePath = path.join(__dirname, '../src/data/crystals.ts');
 
+const ANALYTICS_SCRIPTS = `
+  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "bc04f3973ed14d8fb8482bf5231707dd"}'></script><!-- End Cloudflare Web Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="6c7b0984-3f72-4339-ab22-a09337c07c1a"></script>
+`;
+
 if (!fs.existsSync(distDir)) {
   console.error('Error: dist directory does not exist. Please run build first.');
   process.exit(1);
@@ -133,6 +138,9 @@ crystals.forEach(crystal => {
   `;
   html = html.replace('<div id="root"></div>', `<div id="root">${seoContent}</div>`);
   
+  // 注入統計代碼到 </body> 之前
+  html = html.replace('</body>', `${ANALYTICS_SCRIPTS}</body>`);
+  
   // 寫入檔案
   const targetHtmlPath = path.join(distDir, `crystals/${crystal.id}/index.html`);
   writeStaticPage(targetHtmlPath, html);
@@ -144,8 +152,14 @@ console.log(`Generated ${crystals.length} static crystal detail pages.`);
 const mainRoutes = ['diy', 'numerology', 'encyclopedia'];
 mainRoutes.forEach(route => {
   const targetHtmlPath = path.join(distDir, `${route}/index.html`);
-  writeStaticPage(targetHtmlPath, templateHtml);
+  const routeHtml = templateHtml.replace('</body>', `${ANALYTICS_SCRIPTS}</body>`);
+  writeStaticPage(targetHtmlPath, routeHtml);
 });
-console.log(`Generated main route pages: ${mainRoutes.join(', ')}.`);
+console.log('Generated main route pages: ' + mainRoutes.join(', ') + '.');
+
+// 3. 把統計代碼注入並寫回生產環境首頁 dist/index.html
+const prodIndexHtml = templateHtml.replace('</body>', `${ANALYTICS_SCRIPTS}</body>`);
+fs.writeFileSync(indexHtmlPath, prodIndexHtml, 'utf8');
+console.log('Updated dist/index.html with production analytics.');
 
 console.log('✓ All SEO static pages generated successfully!');

@@ -5,7 +5,7 @@ import { NumerologyCalculator } from './components/NumerologyCalculator';
 import { BraceletSimulator } from './components/BraceletSimulator';
 import { AnimatePresence } from 'framer-motion';
 import { FeedbackModal } from './components/FeedbackModal';
-import { BUY_ME_A_COFFEE_URL } from './config';
+import { PORTALY_SPONSOR_URL } from './config';
 import './App.css';
 
 type Page = 'encyclopedia' | 'numerology' | 'diy';
@@ -184,12 +184,9 @@ function App() {
             </button>
             <button
               onClick={() => {
-                if (BUY_ME_A_COFFEE_URL.includes('your_username')) {
-                  alert('💡 提示：請先在 src/config.ts 中填入您註冊的 Buy Me a Coffee 專屬贊助連結喔！');
-                } else {
-                  window.open(BUY_ME_A_COFFEE_URL, '_blank');
-                }
+                window.open(PORTALY_SPONSOR_URL, '_blank');
               }}
+              data-umami-event="navbar.sponsor"
               style={{
                 ...styles.navLink,
                 color: 'var(--text-tertiary)',

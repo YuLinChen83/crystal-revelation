@@ -4,10 +4,10 @@
 
 export const FEEDBACK_API_URL = 'https://script.google.com/macros/s/AKfycbxXkR8gRqqqLLoPPvlKrSqnvqYDJcPepAFU4uwp3EG7ADXpySQzhNnuMSfAjvy3HkslFQ/exec';
 
-// Buy Me a Coffee 或 Portaly 個人贊助連結
+// Portaly 個人贊助連結
 // 請將您獲得的個人收款/贊助網址貼在下方，例如:
 // 'https://portaly.cc/您的帳號'
-export const BUY_ME_A_COFFEE_URL = 'https://portaly.cc/shiruko/support';
+export const PORTALY_SPONSOR_URL = 'https://portaly.cc/shiruko/support';
 
 
 /**

@@ -4,16 +4,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const AD_TEMPLATES = [
   {
-    prefix: "🔮 能量調頻：配戴水晶能平衡磁場，也推薦到 ",
-    suffix: " 探索療癒與占卜直播，在聲音與社群共鳴中放鬆身心。"
+    prefix: "🔮 能量調頻：配戴水晶平衡磁場同時，也推薦到 ",
+    linkText: "17LIVE",
+    url: "https://17.live",
+    suffix: " 探索療癒與占卜直播，在聲音與社群共鳴中放鬆身心。",
+    event: "numerology.click_17LIVE_1"
   },
   {
     prefix: "✨ 心靈充能：生活疲憊時，不妨去 ",
-    suffix: " 聆聽音樂與療癒直播，透過溫暖的歌聲與交流為心靈找回光芒。"
+    linkText: "17LIVE",
+    url: "https://17.live",
+    suffix: " 聆聽音樂與療癒直播，透過溫暖的歌聲與交流為心靈找回光芒。",
+    event: "numerology.click_17LIVE_2"
   },
   {
-    prefix: "🌿 共振日常：除了水晶的陪伴，也歡迎到 ",
-    suffix: " 探索音樂、療癒與塔羅占卜直播，在空中社群裡找到心靈共鳴。"
+    prefix: "🌿 共振日常：除了水晶的陪伴，也可以去 ",
+    linkText: "17LIVE",
+    url: "https://17.live",
+    suffix: " 探索音樂、療癒與塔羅占卜直播，在空中社群裡找到心靈共鳴 ꙳⸌♡⸍꙳",
+    event: "numerology.click_17LIVE_3"
+  },
+  {
+    prefix: "🔮 想深入探索生命靈數與個人運勢？去 ",
+    linkText: "17LIVE 命理小舖",
+    url: "https://17.live/zh-Hant/suggested?subtab=label:fortune_teller",
+    suffix: "，讓占卜師主播們為你即時指點迷津 *ੈ✩",
+    event: "numerology.click_17LIVE_4"
   }
 ];
 
@@ -465,16 +481,17 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
                 >
                   {ad.prefix}
                   <a
-                    href="https://17.live"
+                    href={ad.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-umami-event={ad.event}
                     style={{
                       color: 'var(--text-secondary)',
                       textDecoration: 'underline',
                       fontWeight: '500',
                     }}
                   >
-                    17LIVE
+                    {ad.linkText}
                   </a>
                   {ad.suffix}
                 </div>
