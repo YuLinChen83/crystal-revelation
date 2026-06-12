@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { useLocation, useNavigate, matchPath } from 'react-router-dom';
 import { Encyclopedia } from './components/Encyclopedia';
 import { NumerologyCalculator } from './components/NumerologyCalculator';
@@ -20,15 +20,15 @@ function App() {
   useEffect(() => {
     const path = location.pathname;
     const cleanPath = path.replace(/\/$/, '').replace(/\/index\.html$/, '');
-    if (cleanPath === '/diy') {
-      setCurrentPage('diy');
-    } else if (cleanPath === '/numerology') {
-      setCurrentPage('numerology');
-    } else if (cleanPath.startsWith('/crystals/')) {
-      setCurrentPage('encyclopedia');
-    } else {
-      setCurrentPage('encyclopedia');
-    }
+    startTransition(() => {
+      if (cleanPath === '/diy') {
+        setCurrentPage('diy');
+      } else if (cleanPath === '/numerology') {
+        setCurrentPage('numerology');
+      } else {
+        setCurrentPage('encyclopedia');
+      }
+    });
   }, [location.pathname]);
 
   const cleanPath = location.pathname.replace(/\/$/, '').replace(/\/index\.html$/, '');
@@ -75,14 +75,16 @@ function App() {
   }, []);
 
   const navigateToPage = (page: Page) => {
-    if (page === 'diy') {
-      navigate('/diy');
-    } else if (page === 'numerology') {
-      navigate('/numerology');
-    } else {
-      navigate('/encyclopedia');
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    startTransition(() => {
+      if (page === 'diy') {
+        navigate('/diy');
+      } else if (page === 'numerology') {
+        navigate('/numerology');
+      } else {
+        navigate('/encyclopedia');
+      }
+      window.scrollTo(0, 0);
+    });
   };
 
   const handleNavigateToDIY = (enableFavoritesFilter?: boolean) => {
@@ -97,7 +99,6 @@ function App() {
   const handleNavigateToEncyclopedia = (numerology: string[]) => {
     setDefaultNumerologyFilter(numerology);
     navigateToPage('encyclopedia');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -121,7 +122,6 @@ function App() {
             style={{ ...styles.logo, cursor: 'pointer' }}
             onClick={() => {
               navigateToPage('encyclopedia');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
             <span style={styles.logoMain}>水晶啟示錄</span>
@@ -338,6 +338,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   mainContent: {
     flex: 1,
     paddingTop: '20px',
+    minHeight: 'calc(100vh - 180px)', // 為主容器預留最小高度，避免在頁面切換、卸載掛載時高度塌陷造成的 CLS 偏移
   },
   footer: {
     borderTop: '1px solid var(--border-light)',
