@@ -272,6 +272,7 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
           />
           <button
             type="submit"
+            data-umami-event="numerology.click_calculate"
             style={{
               ...styles.submitBtn,
               padding: isMobileOrTablet ? '12px' : '0 24px',

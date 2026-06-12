@@ -725,6 +725,7 @@ export const BraceletSimulator: React.FC<{
               <button
                 onClick={handleStringUp}
                 disabled={bracelet.length < 3 || stringingPhase !== 'idle'}
+                data-umami-event="diy.click_string_up"
                 style={{
                   ...styles.canvasActionBtnPrimary,
                   opacity: (bracelet.length < 3 || stringingPhase !== 'idle') ? 0.5 : 1,
