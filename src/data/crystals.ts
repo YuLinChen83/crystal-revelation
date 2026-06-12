@@ -202,7 +202,7 @@ export const crystalsData: Crystal[] = [
     formation: '青金石是一種複合岩石，主要由青金石、方鈉石、藍方石及黃鐵礦（金色斑點）、方解石（白色條紋）在接觸變質作用中共同熔融結晶形成。',
     mythology: '古埃及人將青金石視為通往天堂的聖石。法老圖坦卡門的黃金面具與王冠上大量鑲嵌青金石，象徵著天神與宇宙主宰的至高智慧。',
     image: '/assets/crystals/lapis_lazuli.png',
-    colorHex: '#0f80ff'
+    colorHex: '#1e3799'
   },
   {
     id: 'tigers_eye',
@@ -236,7 +236,7 @@ export const crystalsData: Crystal[] = [
     formation: '在沉積變質作用中，石英砂岩重結晶時包裹了細微的綠色鉻雲母鱗片，使得整塊石英呈現翠綠色並帶有細閃的「砂金效應」。',
     mythology: '在古西藏，綠東陵被用來裝飾佛像的眼睛，人們相信它能增強「內在與外在的視野」，擴大慈悲與療癒的力量，是招來健康與豐盛的石種。',
     image: '/assets/crystals/aventurine.png',
-    colorHex: '#45aaf2'
+    colorHex: '#20bf6b'
   },
   {
     id: 'moonstone',
@@ -301,10 +301,10 @@ export const crystalsData: Crystal[] = [
     numerology: [7, 9],
     traits: ['智慧思緒', '和諧平衡', '直覺靈性'],
     shortDescription: '被稱為「智能之石」，能幫助整理混亂的思緒，提升學習力並穩定心神。',
-    formation: '主要形成於熱液礦脈中。當富含氟 and 鈣的熱溶液與圍岩發生反應結晶而成。因常含有多種稀土元素，在紫外光照射下會發出明亮的螢光。',
+    formation: '主要形成於熱液礦脈中。當富含氟和鈣的熱溶液與圍岩發生反應結晶而成。因常含有多種稀土元素，在紫外光照射下會發出明亮的螢光。',
     mythology: '螢石常具有綠色、紫色等多色帶。古羅馬人深愛以螢石雕刻的聖杯，相信其帶有的斑斕色彩是彩虹之神的恩賜，能將混亂無序的負面思緒梳理成平靜與條理。',
     image: '/assets/crystals/fluorite.png',
-    colorHex: '#12cbc4'
+    colorHex: '#9b59b6'
   },
   {
     id: 'malachite',
@@ -352,7 +352,7 @@ export const crystalsData: Crystal[] = [
     numerology: [5, 4],
     traits: ['勇氣行動', '溝通表達', '和諧平衡'],
     shortDescription: '象徵希望與信心的藍綠色天河石，能幫助克服焦慮，重拾勇氣與自信心。',
-    formation: '是微斜長石的變種。其獨特的藍綠色主要是由晶體結構中含有極微量的鉛元素 and 水分子交互作用所致。',
+    formation: '是微斜長石的變種。其獨特的藍綠色主要是由晶體結構中含有極微量的鉛元素和水分子交互作用所致。',
     mythology: '傳說亞馬遜女戰士的盾牌上都鑲嵌著天河石，她們相信這種明亮的藍綠色晶石能驅散戰鬥前的恐懼焦慮，賜予她們必勝的勇氣與堅定的信念。',
     image: '/assets/crystals/amazonite.png',
     colorHex: '#00d2d3'
@@ -746,7 +746,7 @@ export const crystalsData: Crystal[] = [
     formation: '大約一千五百萬年前，一顆巨大的隕石撞擊波希米亞地區，高溫高壓將地表砂石瞬間熔融冷卻形成的天然綠色玻璃。',
     mythology: '富含宇宙與地球碰撞交融的強大頻率，能突破思維定勢，顯化自我意圖。',
     image: '/assets/crystals/moldavite.png',
-    colorHex: '#26de81'
+    colorHex: '#3b5323'
   },
   {
     id: 'rhodochrosite',
@@ -1025,7 +1025,7 @@ export const crystalsData: Crystal[] = [
     id: 'nephrite',
     name: '和田玉',
     englishName: 'Nephrite Jade',
-    chemicalFormula: 'Ca₂(Mg,Fe)₅Si₈O₂(OH)₂',
+    chemicalFormula: 'Ca₂(Mg,Fe)₅Si₈O₂₂(OH)₂',
     mineralClass: '角閃石族 (Amphibole group)',
     hardness: 6.5,
     crystalSystem: '單斜晶系 (Monoclinic)',
@@ -1093,7 +1093,7 @@ export const crystalsData: Crystal[] = [
     id: 'sodalite',
     name: '方鈉石',
     englishName: 'Sodalite',
-    chemicalFormula: 'Na₈(Al₆Si₆O₂₄)Cl²',
+    chemicalFormula: 'Na₈(Al₆Si₆O₂₄)Cl₂',
     mineralClass: '架狀矽酸鹽 (Tectosilicates)',
     hardness: 5.5,
     crystalSystem: '等軸晶系 (Isometric)',
@@ -1495,7 +1495,7 @@ export const crystalsData: Crystal[] = [
     formation: '主要產於富鋰的花崗偉晶岩中，常與鋰輝石、鋰雲母等共生。',
     mythology: '被稱為「高維通靈之石」，能引導靈魂進入極度深沉的冥想狀態，建立起防禦外界一切負能的精神結界。',
     image: '/assets/crystals/petalite.png',
-    colorHex: '#f9ca24'
+    colorHex: '#f5f6fa'
   },
   {
     id: 'scapolite',
@@ -1563,7 +1563,7 @@ export const crystalsData: Crystal[] = [
     formation: '是由富含鉻或釩的鈣鋁榴石，在區域變質作用的高溫高壓環境下重結晶而成的稀有寶石。',
     mythology: '其名源自肯亞沙弗國家公園，代表非洲草原的原始野性生命力，是能迅速提升個人顯化運勢的豐盛之石。',
     image: '/assets/crystals/tsavorite.png',
-    colorHex: '#1abc9c'
+    colorHex: '#10ac84'
   },
   {
     id: 'ruby_in_zoisite',
@@ -1688,7 +1688,7 @@ export const crystalsData: Crystal[] = [
     id: 'cacoxenite',
     name: '黃磷鐵礦',
     englishName: 'Cacoxenite',
-    chemicalFormula: 'Fe²⁺₂₄AlO₆(PO₄)₁₇(OH)₁₂·75H₂O',
+    chemicalFormula: 'Fe³⁺₂₄AlO₆(PO₄)₁₇(OH)₁₂·75H₂O',
     mineralClass: '磷酸鹽類 (Phosphates)',
     hardness: 3.5,
     crystalSystem: '六方晶系 (Hexagonal)',
