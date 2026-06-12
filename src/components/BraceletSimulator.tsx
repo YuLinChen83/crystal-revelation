@@ -622,6 +622,13 @@ export const BraceletSimulator: React.FC<{
             請由下方水晶珠盤挑選水晶珠放入手鍊，此處將分析您的專屬手鍊能量。
           </div>
         )}
+
+        {/* 工坊實體化安全提醒聲明 */}
+        <div style={styles.workshopDisclaimer}>
+          <span style={{ fontSize: '11px', display: 'block', lineHeight: '1.5' }}>
+            ⚠️ <strong>工坊提醒</strong>：本站收錄之水晶礦物並非全部適合加工為實體首飾元件（部分礦物硬度較低易碎，或含有特定化學元素不宜貼身配戴），若欲串製實體手鍊，請依珠寶專家建議自行斟酌。
+          </span>
+        </div>
       </div>
     );
   };
@@ -1699,6 +1706,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: '16px',
     right: '16px',
     zIndex: 10,
+  },
+  workshopDisclaimer: {
+    marginTop: '16px',
+    padding: '10px 14px',
+    backgroundColor: 'var(--bg-secondary)',
+    border: '1px solid var(--border-light)',
+    borderRadius: '4px',
+    color: 'var(--text-tertiary)',
   },
 };
 

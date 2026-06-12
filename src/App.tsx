@@ -238,7 +238,10 @@ function App() {
       {/* 極簡頁腳 */}
       <footer style={styles.footer}>
         <div className="container" style={styles.footerContent}>
-          <p>© 2026 水晶啟示錄 · 純白極簡水晶探索平台</p>
+          <p style={{ margin: 0, fontWeight: '500' }}>© 2026 水晶啟示錄 · 純白極簡水晶探索平台</p>
+          <p style={{ margin: '6px 0 0 0', color: 'var(--text-tertiary)', fontSize: '10px', maxWidth: '600px', textAlign: 'center', lineHeight: '1.6' }}>
+            本站所有內容包含圖片均由 AI 協作生成，部分資訊可能與科學或礦物學事實存在偏差，僅供探索參考。
+          </p>
         </div>
       </footer>
 
@@ -318,6 +321,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   footerContent: {
     display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     justifyContent: 'center',
     fontSize: '11px',
     color: 'var(--text-tertiary)',
