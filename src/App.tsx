@@ -14,7 +14,14 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [currentPage, setCurrentPage] = useState<Page>('encyclopedia');
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    if (typeof window === 'undefined') return 'encyclopedia';
+    const path = window.location.pathname;
+    const cleanPath = path.replace(/\/$/, '').replace(/\/index\.html$/, '');
+    if (cleanPath === '/diy') return 'diy';
+    if (cleanPath === '/numerology') return 'numerology';
+    return 'encyclopedia';
+  });
 
   // 用於同步 URL 到 currentPage
   useEffect(() => {
@@ -38,8 +45,14 @@ function App() {
   const [selectedCrystalForDIY, setSelectedCrystalForDIY] = useState<string | null>(null);
   const [defaultShowFavoritesInDIY, setDefaultShowFavoritesInDIY] = useState<boolean>(false);
   const [defaultNumerologyFilter, setDefaultNumerologyFilter] = useState<string[]>([]);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isDoubleColumn, setIsDoubleColumn] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768;
+  });
+  const [isDoubleColumn, setIsDoubleColumn] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth > 1080;
+  });
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState('全站建議 / 其他');
 
