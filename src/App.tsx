@@ -5,6 +5,7 @@ import { NumerologyCalculator } from './components/NumerologyCalculator';
 import { BraceletSimulator } from './components/BraceletSimulator';
 import { AnimatePresence } from 'framer-motion';
 import { FeedbackModal } from './components/FeedbackModal';
+import { WelcomeModal } from './components/WelcomeModal';
 import { PORTALY_SPONSOR_URL } from './config';
 import './App.css';
 
@@ -55,6 +56,18 @@ function App() {
   });
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState('全站建議 / 其他');
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const storedTime = localStorage.getItem('has_seen_welcome_notice');
+    if (!storedTime) return true;
+    
+    // 預留未來版本升級/強制重新閱讀的邏輯。
+    // 如果有新的通知，將下方 thresholdTime 設為新公告的發布時間即可。
+    // const thresholdTime = new Date('2026-06-15T00:00:00Z').getTime();
+    // if (Number(storedTime) < thresholdTime) return true;
+    
+    return false;
+  });
 
   const handleOpenFeedback = (target: string) => {
     setFeedbackTarget(target);
@@ -287,6 +300,11 @@ function App() {
           <FeedbackModal
             target={feedbackTarget}
             onClose={() => setIsFeedbackOpen(false)}
+          />
+        )}
+        {isWelcomeOpen && (
+          <WelcomeModal
+            onClose={() => setIsWelcomeOpen(false)}
           />
         )}
       </AnimatePresence>
