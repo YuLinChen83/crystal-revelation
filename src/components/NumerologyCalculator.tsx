@@ -534,6 +534,7 @@ interface ModalProps {
 }
 const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose, isMobile, onOpenFeedback, favorites, onToggleFavorite }) => {
   const [isReportHovered, setIsReportHovered] = useState(false);
+  const [isSearchHovered, setIsSearchHovered] = useState(false);
   const isFavorite = favorites.includes(crystal.id);
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
@@ -618,6 +619,24 @@ const Modal: React.FC<ModalProps> = ({ crystal, activeTab, setActiveTab, onClose
                 style={styles.modalBeadImage}
               />
             </div>
+            <a
+              href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(crystal.name + ' ' + (crystal.englishName || '') + ' 水晶')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onMouseEnter={() => setIsSearchHovered(true)}
+              onMouseLeave={() => setIsSearchHovered(false)}
+              style={{
+                ...styles.googleSearchBtn,
+                position: 'absolute',
+                top: '108px',
+                right: isMobile ? '16px' : '32px',
+                background: isSearchHovered ? 'var(--border-light, #e4e7eb)' : 'rgba(255, 255, 255, 0.4)',
+                borderColor: isSearchHovered ? 'var(--text-tertiary, #a4b0be)' : 'var(--border-light, #e4e7eb)',
+                color: isSearchHovered ? 'var(--text-primary)' : 'var(--text-secondary)',
+              }}
+            >
+              Google 圖片 ↗
+            </a>
 
             {/* 水晶名稱區域（手機版將最愛按鈕貼右邊界） */}
             <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -1132,6 +1151,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: '1.6',
     margin: 0,
     textAlign: 'left',
+  },
+  googleSearchBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    textDecoration: 'none',
+    border: '1px solid var(--border-light)',
+    borderRadius: '16px',
+    padding: '4px 10px',
+    fontSize: '10px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   reportBtn: {
     display: 'flex',
