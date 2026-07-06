@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { crystalsData, type Crystal } from '../data/crystals';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CrystalDetailModal } from './CrystalDetailModal';
+import { numerologyData } from '../data/numerologyData';
+
 
 const AD_TEMPLATES = [
   {
@@ -58,6 +60,11 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
   const [birthDate, setBirthDate] = useState<string>('');
   const [result, setResult] = useState<NumerologyResult | null>(null);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  const currentPathData = useMemo(() => {
+    if (!result) return null;
+    return numerologyData.life_path_data[result.lifePathNumber.toString()] || null;
+  }, [result]);
 
   const [showInfoTooltip, setShowInfoTooltip] = useState<boolean>(false);
 
@@ -305,12 +312,18 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
               </div>
               <div style={styles.numberDesc}>
                 <h3 style={styles.sectionTitle}>
-                  生命靈數 {result.lifePathNumber} 號人
+                  生命靈數 {result.lifePathNumber} 號人 - {currentPathData?.name}
                 </h3>
-                <p style={styles.descriptionText}>
-                  您的主命數為 {result.lifePathNumber}，象徵著您今生的靈魂課題與天賦優勢。
-                  配戴對應水晶可以穩定您的核心磁場，將優勢發揮至極致。
-                </p>
+                {currentPathData?.vibe && (
+                  <p style={{ ...styles.descriptionText, marginBottom: '8px' }}>
+                    {currentPathData.vibe}
+                  </p>
+                )}
+                {currentPathData?.positive_affirmation && (
+                  <p style={{ ...styles.descriptionText, color: 'var(--text-primary)', fontWeight: '600', fontStyle: 'italic', marginBottom: '8px', whiteSpace: 'pre-wrap', textAlign: 'right' }}>
+                    「{currentPathData.positive_affirmation}」
+                  </p>
+                )}
               </div>
             </div>
 
@@ -342,14 +355,27 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
 
             {/* 水晶展示區塊 */}
             <div style={styles.crystalSection}>
-              {activeResultTab === 'missing' && (
-                <p style={{ ...styles.descriptionText, marginBottom: '8px' }}>
-                  您的生日九宮格中，缺少的數字為：
-                  <span style={styles.missingList}>
-                    {result.missingNumbers.length > 0 ? result.missingNumbers.join(', ') : '無缺數'}
-                  </span>
-                  。配戴對應的水晶可以補足缺少的能量磁場，達到和諧平衡。
-                </p>
+              {activeResultTab === 'main' && currentPathData && (
+                <div>
+                  <p style={styles.infoText}>{currentPathData.destiny_crystal.destiny_point}</p>
+                </div>
+              )}
+
+              {activeResultTab === 'missing' && currentPathData && (
+                <>
+                  <div>
+                    <p style={styles.infoText}>
+                      {currentPathData.missing_crystal.missing_point}
+                    </p>
+                  </div>
+                  <p style={{ ...styles.descriptionText, ...styles.infoBlock, marginBottom: '0px' }}>
+                    您的生日九宮格中，缺少的數字為：
+                    <span style={styles.missingList}>
+                      {result.missingNumbers.length > 0 ? result.missingNumbers.join(', ') : '無缺數'}
+                    </span>
+                    。配戴對應的水晶可以補足缺少的能量磁場，達到和諧平衡。
+                  </p>
+                </>
               )}
 
               <div style={styles.crystalGrid}>
@@ -809,5 +835,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'inherit',
     marginTop: '12px',
   },
-
+  infoBlock: {
+    backgroundColor: 'var(--bg-secondary)',
+    border: '1px solid var(--border-light)',
+    padding: '8px 12px',
+    borderRadius: '8px',
+  },
+  infoLabel: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    margin: '0 0 8px 0',
+  },
+  infoText: {
+    fontSize: '13px',
+    color: 'var(--text-secondary)',
+    lineHeight: '1.6',
+    margin: 0,
+  },
+  missingDetailPoint: {
+    fontSize: '12px',
+    color: 'var(--text-secondary)',
+    lineHeight: '1.5',
+    margin: 0,
+  },
 };
