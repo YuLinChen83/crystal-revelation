@@ -208,7 +208,7 @@ function App() {
               )}
               問題回報
             </button>
-            <button
+            {/* <button
               onClick={() => {
                 window.open(PORTALY_SPONSOR_URL, '_blank');
               }}
@@ -232,7 +232,7 @@ function App() {
                 </svg>
               )}
               贊助咖啡
-            </button>
+            </button> */}
           </nav>
         </div>
       </header>
