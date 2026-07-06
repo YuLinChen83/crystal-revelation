@@ -21,8 +21,8 @@ export interface NumerologyAnalysis {
 }
 
 export const numerologyData: NumerologyAnalysis = {
-  "title": "水晶生命靈數多方位全解析 (靈魂溫柔提點版)",
-  "description": "融合西方數秘術與東方晶礦能量學，針對主命數的天賦優勢、盲點课题以及靈魂能量提升進行全方位統合分析。",
+  "title": "水晶生命靈數全解析",
+  "description": "融合西方數秘術與東方晶礦能量學，針對主命數的天賦優勢、盲點課題以及靈魂能量提升進行的統合分析。",
   "life_path_data": {
     "0": {
       "name": "虛幻數 / 無窮潛能者",

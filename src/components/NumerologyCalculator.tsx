@@ -67,6 +67,19 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
   }, [result]);
 
   const [showInfoTooltip, setShowInfoTooltip] = useState<boolean>(false);
+  const [showTraitsModal, setShowTraitsModal] = useState<boolean>(false);
+
+  // 監聽 ESC 鍵關閉彈窗
+  useEffect(() => {
+    if (!showTraitsModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowTraitsModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showTraitsModal]);
 
   // 隨機選擇心靈調頻廣告索引，當靈數結果改變時重新隨機，防止頻繁閃爍
   const adIndex = useMemo(() => {
@@ -288,6 +301,28 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             測算能量
           </button>
         </form>
+
+        {result && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '-24px', marginBottom: '32px' }}>
+            <button
+              type="button"
+              onClick={() => setShowTraitsModal(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            >
+              查看所有靈數特質 ➔
+            </button>
+          </div>
+        )}
 
         {result && (
           <motion.div
@@ -538,6 +573,137 @@ export const NumerologyCalculator: React.FC<NumerologyCalculatorProps> = ({
             favorites={favorites}
             onToggleFavorite={onToggleFavorite}
           />
+        )}
+
+        {showTraitsModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }}
+            onClick={() => setShowTraitsModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 15 }}
+              transition={{ duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: 'var(--bg-primary)',
+                width: '800px',
+                maxWidth: '92%',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                padding: isMobileOrTablet ? '32px 16px' : '40px',
+                border: '1px solid var(--border-medium)',
+                position: 'relative',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowTraitsModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  color: 'var(--text-tertiary)',
+                  padding: '12px',
+                  zIndex: 100,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ✕
+              </button>
+
+              <h2 style={{ fontSize: '20px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-primary)', textAlign: 'center' }}>
+                {numerologyData.title}
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '28px', textAlign: 'center' }}>
+                {numerologyData.description}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {Object.entries(numerologyData.life_path_data).map(([num, data]) => (
+                  <div
+                    key={num}
+                    style={{
+                      borderBottom: '1px solid var(--border-light)',
+                      paddingBottom: '20px',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          border: '1px solid var(--text-primary)',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {num}
+                      </div>
+                      <h3 style={{ fontSize: '15px', fontWeight: '600', margin: 0, color: 'var(--text-primary)' }}>
+                        {data.name}
+                      </h3>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '38px' }}>
+                      <p style={{ fontSize: '13px', color: 'var(--text-primary)', fontStyle: 'italic', margin: 0, lineHeight: '1.5', fontWeight: '500' }}>
+                        「{data.positive_affirmation}」
+                      </p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
+                        <strong>氣場氛圍：</strong>{data.vibe}
+                      </p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
+                        <strong>命定水晶：</strong>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {data.destiny_crystal.stones.join('、')}
+                        </span>
+                        <br />
+                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                          {data.destiny_crystal.destiny_point}
+                        </span>
+                      </p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
+                        <strong>缺數課題：</strong>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {data.missing_crystal.stones.join('、')}
+                        </span>
+                        <br />
+                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                          {data.missing_crystal.missing_point}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

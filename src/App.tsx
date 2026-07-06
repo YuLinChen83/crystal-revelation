@@ -6,7 +6,6 @@ import { BraceletSimulator } from './components/BraceletSimulator';
 import { AnimatePresence } from 'framer-motion';
 import { FeedbackModal } from './components/FeedbackModal';
 import { WelcomeModal } from './components/WelcomeModal';
-import { PORTALY_SPONSOR_URL } from './config';
 import './App.css';
 
 type Page = 'encyclopedia' | 'numerology' | 'diy';
